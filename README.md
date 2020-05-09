@@ -1,2 +1,3 @@
 # Discord2FA
-discord2fa's src code
+
+Protect your staff's account with Discord authentication!
