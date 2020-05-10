@@ -66,6 +66,11 @@
             <id>lenis0012-repo</id>
             <url>https://dl.bintray.com/lenis0012/maven-releases/</url>
         </repository>
+		<repository>
+			<id>jcenter</id>
+			<name>jcenter-bintray</name>
+			<url>https://jcenter.bintray.com</url>
+		</repository>
     </repositories>
 
     <dependencies>
