@@ -1,0 +1,11 @@
+name: Discord2FA
+main: io.github.eylexlive.discord2fa.Main
+author: EylexLive
+version: 2.1
+description: Disord2FA is a plugin that protect your staffs' account with using Discord!
+softdepend: [AuthMe,AuthMeReloaded,LoginSecurity]
+
+commands:
+  auth:
+  discord2fa:
+    aliases: [dc2fa]

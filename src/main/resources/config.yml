@@ -1,0 +1,130 @@
+mysql:
+  enabled: false
+  host: localhost
+  port: 3306
+  database: minecraft
+  username: root
+  password: 1234
+  use-ssl: true
+
+bot-token: Your token here.
+auth-countdown: 60
+number-of-rights: 5
+rights-reached-console-command: 'tempban %player% 20m'
+check-for-updates: true
+generate-new-code-always: true
+auto-verification: true
+code-lenght: 6
+authme-support: true
+loginsecurity-support: false
+
+logs:
+  enabled: true
+  player-authenticated: '> %player%''s account was authenticated.'
+  player-entered-wrong-code: '> %player% entered wrong code! Left rights: %left%'
+  player-reached-limit: '> %player% reached the right limit!'
+  admin-ids:
+    - 324289979188510730
+canceled-events:
+  command-use:
+    cancel: true
+    whitelisted-commands:
+      - auth
+  item-drop:
+    cancel: true
+    whitelisted-materials:
+      - STONE
+  block-break:
+    cancel: true
+    whitelisted-blocks:
+      - STONE
+  block-place:
+    cancel: true
+    whitelisted-blocks:
+      - STONE
+  chat-use:
+    cancel: true
+    whitelisted-words:
+      - Hello
+  inventory-click:
+    cancel: true
+    whitelisted-materials:
+      - STONE
+  player-interact:
+    cancel: true
+    whitelisted-actions:
+      - PHYSICAL
+  inventory-open:
+    cancel: true
+    whitelisted-inventory-types:
+      - ANVIL
+
+messages:
+  auto-verify-success-message: '&8&l- &6Automatic verification successful!'
+  discord-message: 'Your auth code: %code%'
+  kick-message: '&cYou are kicked from the server because &fauth countdown time &cis reached! &cLeft rights&8:&f %rights%'
+  auth-message: # Split messages with "%nl%"
+    format-1: ' %nl%
+    &8&l- &f&lHEY! &6You must be authenticated to connect!
+    %nl% %nl%
+    &8&l- &6We are sent a code,please check your discord direct messages!.
+    %nl%
+    &8&l- &6If the code has not been sent,check your direct message settings and try again.
+    %nl%
+    &8&l- &6/auth <code> &6to authenticate yourself.
+    %nl%
+    &8&l- &6You have %countdown% seconds!
+    %nl%'
+    format-2: ' %nl%
+    &8&l- &f&lHEY! &6You must be authenticated to connect!
+     %nl% %nl%
+    &8&l- &6We are sent a code,please check your discord direct messages!.
+    %nl%
+    &8&l- &6If the code has not been sent,check your direct message settings and try again.
+    %nl%
+    &8&l- &6/auth <code> &6to authenticate yourself.
+    %nl%
+    &8&l- &f%seconds% left!
+    %nl%'
+  auth-command:
+    help-message: '&8&l- &6/auth <code>'
+    already-verified-message: '&8&l- &6Your connect already verified!'
+    invalid-code-message: '&8&l- &6Invalid code,Left rights:&f %rights%'
+    auth-success-message: '&8&l- &6Successfully authenticated with your Discord account. Thanks for keeping your account secure.'
+    backup-code-used: '&8&l- &6You have used a backup code!'
+  discord2fa-command: # Split messages with "%nl%"
+    help-message: '
+    &8&m--------------------
+    %nl%
+    &6&lDiscord2FA&8&l -&f&l Help
+    %nl% %nl%
+    &6Commands:
+    %nl%
+    &f/discord2fa addToVerifyList <player> <discord id>
+    %nl%
+    &f/discord2fa removeFromVerifyList <player> <discord id>
+    %nl%
+    &f/discord2fa verifyList
+    %nl%
+    &f/discord2fa removeFromCheck <player>
+    %nl%
+    &f/discord2fa generateBackupCodes <player>
+    %nl%
+    &f/discord2fa reloadConfig
+    %nl% %nl%
+    &8&m--------------------'
+    verifyList-message: '
+    &6&lVerify List&8:
+    %nl% %nl%
+    %list%
+    '
+    backup-codes-generated: '&8&l- &6Backup codes was generated for &f%player%&6 Codes: &f%codes%'
+    added-to-verifyList-message: '&8&l- &f%player% &6successfully added to verify list with discord id &f%id%.'
+    removed-from-verifyList-message: '&8&l- &f%player% &6successfully removed from verify list with discord id &f%id%.'
+    reload-success: '&aReload success!'
+  event-messages:
+    command-use-message: '&8&l-&6 Please verify your login firstly for use a command!'
+    item-drop-message: '&8&l-&6 Please verify your login firstly for drop a item!'
+    block-break-message: '&8&l-&6 Please verify your login firstly for break a block!'
+    block-place-message: '&8&l-&6 Please verify your login firstly for place a block!'
+    chat-use-message: '&8&l-&6 Please verify your login firstly for use the chat!'
