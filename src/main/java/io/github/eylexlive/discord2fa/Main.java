@@ -17,18 +17,25 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class Main extends JavaPlugin {
-    @Getter private static Main instance;
-    @Getter private Discord2FAManager discord2FAManager;
-    @Getter private SitManager sitManager;
-    @Getter private MySQLDatabase mySQLDatabase;
-    @Getter private YAMLDatabase yamlDatabase;
+    @Getter 
+	private static Main instance;
+    @Getter 
+	private Discord2FAManager discord2FAManager;
+    @Getter 
+	private SitManager sitManager;
+    @Getter 
+	private MySQLDatabase mySQLDatabase;
+    @Getter 
+	private YAMLDatabase yamlDatabase;
+
     @Override
     public void onEnable() {
         instance = this;
+ //       this.saveDefaultConfig();
         this.getConfig().options().copyDefaults(true);
         this.saveConfig();
         this.discord2FAManager = new Discord2FAManager();
@@ -38,8 +45,8 @@ public class Main extends JavaPlugin {
         this.hookPlugins();
         this.setupDatabase();
         this.transferDataIfExits();
-        new LoginBot();
         new UpdateCheck();
+        new LoginBot();
     }
     @Override
     public void onDisable() {
@@ -52,6 +59,7 @@ public class Main extends JavaPlugin {
             this.mySQLDatabase = new MySQLDatabase();
         else
             this.yamlDatabase = new YAMLDatabase();
+            this.getLogger().info("Loading Discord2FA database.yml");
     }
     private void registerCommands() {
         this.getCommand("auth").setExecutor(new AuthCommand());
@@ -75,21 +83,21 @@ public class Main extends JavaPlugin {
 
     private void hookPlugins() {
         if (this.getConfig().getBoolean("authme-support")) {
-            this.getLogger().info("Registering AuthMe Support...");
+            this.getLogger().info("Hooking into AuthMe");
             if (this.getServer().getPluginManager().getPlugin("AuthMe") == null) {
-                this.getLogger().warning("The AuthMe Support can't registered,because AuthMe plugin is not enabled.");
-                return;
-            }
+                this.getLogger().warning("ERROR: AuthMe is not enabled!");
+                 return;
+             }
             this.getServer().getPluginManager().registerEvents(new AuthmeLoginListener(),this);
-            this.getLogger().info("AuthMe support registered!");
+            this.getLogger().info("Hooked into AuthMe");
         }else if (this.getConfig().getBoolean("loginsecurity-support")) {
-            this.getLogger().info("Registering LoginSecurity Support...");
+            this.getLogger().info("Hooking into LoginSecurity");
             if (this.getServer().getPluginManager().getPlugin("LoginSecurity") == null) {
-                this.getLogger().warning("The LoginSecurity Support can't registered,because LoginSecurity plugin is not enabled.");
+                this.getLogger().warning("ERROR: LoginSecurity is not enabled!");
                 return;
             }
             this.getServer().getPluginManager().registerEvents(new LoginSecurityListener(), this);
-            this.getLogger().info("LoginSecurity support registered!");
+            this.getLogger().info("Hooked into LoginSecurity");
         }
     }
     private void transferDataIfExits() {
@@ -118,4 +126,5 @@ public class Main extends JavaPlugin {
     public JDA getBot() {
         return LoginBot.jda;
     }
+    public boolean getConnectStatus() { return this.getBot() != null; }
 }

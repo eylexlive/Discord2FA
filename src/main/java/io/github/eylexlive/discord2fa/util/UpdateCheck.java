@@ -11,7 +11,7 @@ import java.net.URLConnection;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class UpdateCheck {
@@ -21,17 +21,20 @@ public class UpdateCheck {
         this.checkForUpdate();
     }
    private void checkForUpdate() {
-       new BukkitRunnable() {
-           @Override
-           public void run() {
-               plugin.getLogger().info("Checking for updates...");
-               if (isAvailable()) {
-                   plugin.getLogger().warning("A new update is available at: https://www.spigotmc.org/resources/75451/updates");
-               } else {
-                   plugin.getLogger().info("No update found!");
-               }
-           }
-       }.runTaskLater(this.plugin,40L);
+       System.out.println("-----------------------------");
+       System.out.println("     Discord2FA Updater     ");
+       System.out.println(" ");
+       System.out.println("v"+plugin.getDescription().getVersion()+" running now");
+       if (isAvailable()) {
+           System.out.println("A new update is available at");
+           System.out.println("spigotmc.org/resources/75451");
+           System.out.println(" ");
+       } else {
+           System.out.println("The last version of");
+           System.out.println("Discord2FA");
+           System.out.println(" ");
+       }
+       System.out.println("-----------------------------");
    }
    public boolean isAvailable() {
        URLConnection urlConnection;

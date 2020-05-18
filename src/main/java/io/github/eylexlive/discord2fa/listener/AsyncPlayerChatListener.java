@@ -10,7 +10,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class AsyncPlayerChatListener implements Listener {
@@ -18,7 +18,7 @@ public class AsyncPlayerChatListener implements Listener {
     public AsyncPlayerChatListener() {
         this.plugin = Main.getInstance();
     }
-    @EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST,ignoreCancelled = true)
     public void handleChat(AsyncPlayerChatEvent event) {
         String settingsPrefix = "canceled-events.";
         if (!this.plugin.getConfig().getBoolean(settingsPrefix+"chat-use.cancel")) {

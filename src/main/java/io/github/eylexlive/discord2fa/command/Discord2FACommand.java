@@ -12,7 +12,7 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class Discord2FACommand implements CommandExecutor {
@@ -38,6 +38,7 @@ public class Discord2FACommand implements CommandExecutor {
             String prefix = "messages.discord2fa-command.";
             if (args.length == 0) {
                 sender.sendMessage(mainMessage);
+                sender.sendMessage("§fBot status: §"+(this.plugin.getConnectStatus() ? "aConnected." : "cConnect failed!"));
                 String help_message = this.plugin.getConfig().getString(prefix+"help-message");
                 help_message = help_message.replace("&","§");
                 sender.sendMessage(help_message.split("%nl%"));

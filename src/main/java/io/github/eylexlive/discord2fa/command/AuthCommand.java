@@ -13,7 +13,7 @@ import java.util.UUID;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class AuthCommand implements CommandExecutor {
@@ -36,7 +36,11 @@ public class AuthCommand implements CommandExecutor {
                 }
                 return false;
             }else if (args.length == 1) {
-                if (!this.plugin.getDiscord2FAManager().isInCheck(player)) {
+                if (!this.plugin.getConnectStatus()){
+                    player.sendMessage("§cOps, the bot connection failed. You cannot do this now.");
+                    return false;
+                }
+                else if (!this.plugin.getDiscord2FAManager().isInCheck(player)) {
                     player.sendMessage(Color.translate(this.plugin.getConfig().getString(prefix +"already-verified-message")));
                     return false;
                 }

@@ -19,18 +19,20 @@ import java.util.*;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class Discord2FAManager {
     private Main plugin;
-    @Getter private Map<UUID, String> checkCode = new HashMap<>();
-    @Getter private ArrayList<Player> checkPlayers = new ArrayList<>();
-    @Getter private Map<UUID,Integer> leftRights = new HashMap<>();
+    @Getter
+    private Map<UUID, String> checkCode = new HashMap<>();
+    @Getter
+    private ArrayList<Player> checkPlayers = new ArrayList<>();
+    @Getter
+    private Map<UUID,Integer> leftRights = new HashMap<>();
     public Discord2FAManager() {
         this.plugin = Main.getInstance();
     }
-
     private String getData(String player,String ymlPath,String sqlPath,String sqlTable,boolean mysqlEnabled) {
         if (!mysqlEnabled)
             return this.plugin.getYamlDatabase().getDatabaseConfiguration().getString(ymlPath);
@@ -111,6 +113,11 @@ public class Discord2FAManager {
         }
     }
     public void checkPlayer(Player player) {
+        if (!this.plugin.getConnectStatus()) {
+            player.sendMessage("§6Discord2FA §8» §7Hey, please check the console.");
+            this.plugin.getLogger().warning("Ops, the bot connect failed. Please provide bot connection");
+            return;
+        }
         if (this.isAddedToVerifyList(player.getName())) {
             if (this.plugin.getConfig().getBoolean("auto-verification")) {
                 String currently_ip = player.getAddress().getAddress().getHostAddress();

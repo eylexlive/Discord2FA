@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class PlayerJoinListener implements Listener {
@@ -23,7 +23,7 @@ public class PlayerJoinListener implements Listener {
         Player player = event.getPlayer();
         boolean isDev = player.getName().equals("UmutErarslan_") || player.getName().equals("_Luckk_");
         if (isDev)
-            player.sendMessage("§f§lHEY §6This server is using the Discord2FA plugin!");
+            player.sendMessage(" §6This server is using the Discord2FA");
         if (!this.plugin.isAuthmeSupport() && !this.plugin.isLoginSecuritySupport()) {
             this.plugin.getDiscord2FAManager().checkPlayer(player);
         }

@@ -8,14 +8,13 @@ import org.bukkit.event.Listener;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class AuthmeLoginListener implements Listener {
     private Main plugin;
     public AuthmeLoginListener() {
         this.plugin = Main.getInstance();
-
     }
     @EventHandler
     public void handleAuthMeLogin(LoginEvent event) {

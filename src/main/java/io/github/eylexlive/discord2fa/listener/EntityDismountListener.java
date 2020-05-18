@@ -9,7 +9,7 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class EntityDismountListener implements Listener {

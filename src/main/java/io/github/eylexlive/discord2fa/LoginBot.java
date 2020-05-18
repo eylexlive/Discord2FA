@@ -7,29 +7,28 @@ import javax.security.auth.login.LoginException;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class LoginBot {
     private Main plugin;
-    public static JDA jda;
+    public static JDA jda = null;
     public LoginBot() {
         this.plugin = Main.getInstance();
         this.login();
     }
     private void login() {
         try {
-                jda = new JDABuilder(this.plugin.getConfig().getString("bot-token"))
+            String token = this.plugin.getConfig().getString("bot-token");
+            if (token != null && token.equals("Your token here.")) {
+                this.plugin.getLogger().warning("Please put your bot's token in config.");
+                return;
+            }
+                jda = new JDABuilder(token)
                         .build();
-            this.plugin.getLogger().info("Discord2FA plugin enabled!");
-            this.plugin.getLogger().info("The plugin made by EylexLive");
-            this.plugin.getLogger().info("Version: v"+this.plugin.getDescription().getVersion());
         } catch (LoginException e) {
-            e.printStackTrace();
-            this.plugin.getLogger().info("Bot not connected!");
-            this.plugin.getLogger().info("Please check upper error.");
-            this.plugin.getLogger().info("Disabling plugin!");
-            this.plugin.getServer().getPluginManager().disablePlugin(plugin);
+            this.plugin.getLogger().severe("Bot failed to connect!");
+            this.plugin.getLogger().severe("Error cause: "+e.getLocalizedMessage());
         }
     }
 }

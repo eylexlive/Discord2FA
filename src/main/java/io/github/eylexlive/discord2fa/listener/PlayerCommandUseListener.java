@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.1
+ *	Currently version: 2.2
  */
 
 public class PlayerCommandUseListener implements Listener {
@@ -18,7 +18,7 @@ public class PlayerCommandUseListener implements Listener {
     public PlayerCommandUseListener() {
         this.plugin = Main.getInstance();
     }
-    @EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST,ignoreCancelled = true)
     public void handleCommandPreProcess(PlayerCommandPreprocessEvent event) {
         String settingsPrefix = "canceled-events.";
         if (!this.plugin.getConfig().getBoolean(settingsPrefix +"command-use.cancel")) {
