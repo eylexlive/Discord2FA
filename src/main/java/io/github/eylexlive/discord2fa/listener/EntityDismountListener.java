@@ -9,7 +9,7 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.2
+ *	Currently version: 2.3
  */
 
 public class EntityDismountListener implements Listener {
@@ -18,7 +18,7 @@ public class EntityDismountListener implements Listener {
         this.plugin = Main.getInstance();
     }
     @EventHandler
-    public void onVehicle(EntityDismountEvent event) {
+    public void handleEntityDismount(EntityDismountEvent event) {
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             if (event.getDismounted() instanceof ArmorStand) {

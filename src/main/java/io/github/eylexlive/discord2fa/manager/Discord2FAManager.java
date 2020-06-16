@@ -4,13 +4,10 @@ import io.github.eylexlive.discord2fa.Main;
 import io.github.eylexlive.discord2fa.runnable.CountdownRunnable;
 import io.github.eylexlive.discord2fa.util.Color;
 import lombok.Getter;
-import lombok.Setter;
 import net.dv8tion.jda.api.entities.User;
 import org.apache.commons.lang.RandomStringUtils;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.jetbrains.annotations.NotNull;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,21 +16,19 @@ import java.util.*;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.2
+ *	Currently version: 2.3
  */
 
 public class Discord2FAManager {
     private Main plugin;
-    @Getter
-    private Map<UUID, String> checkCode = new HashMap<>();
-    @Getter
-    private ArrayList<Player> checkPlayers = new ArrayList<>();
-    @Getter
-    private Map<UUID,Integer> leftRights = new HashMap<>();
+    @Getter private Map<UUID, String> checkCode = new HashMap<>();
+    @Getter private ArrayList<Player> checkPlayers = new ArrayList<>();
+    @Getter private Map<UUID,Integer> leftRights = new HashMap<>();
     public Discord2FAManager() {
         this.plugin = Main.getInstance();
     }
-    private String getData(String player,String ymlPath,String sqlPath,String sqlTable,boolean mysqlEnabled) {
+    // Data getter
+    private String getData(String player, String ymlPath,String sqlPath, String sqlTable, boolean mysqlEnabled) {
         if (!mysqlEnabled)
             return this.plugin.getYamlDatabase().getDatabaseConfiguration().getString(ymlPath);
         PreparedStatement statement;
@@ -50,6 +45,75 @@ public class Discord2FAManager {
         }
         return null;
     }
+    private void putAndSendCode(Player player,String code) {
+        checkCode.put(player.getUniqueId(),code);
+        String message = this.plugin.getConfig().getString("messages.discord-message");
+        message = message.replace("%code%",this.getCheckCode().get(player.getUniqueId()));
+        String memberId = this.getData(player.getName(),"verify."+player.getName()+".discord","discord","2fa",this.plugin.isMySQLEnabled());
+        if (memberId == null) {
+            this.plugin.getLogger().warning("We're cannot get player's Discord ID?");
+            return;
+        }
+        if (leftRights.get(player.getUniqueId()) == null) {
+            leftRights.put(player.getUniqueId(),this.plugin.getConfig().getInt("number-of-rights"));
+        }
+        User user = this.plugin.getBot().getUserById(memberId);
+        if (user != null) {
+            user.openPrivateChannel().complete().sendMessage((message)).queue();
+        } else {
+            this.plugin.getLogger().warning("Uh, we're cannot find user with id "+memberId+"");
+        }
+    }
+    // Check
+    public void addPlayerToCheck(Player player) {
+        if (!this.isInCheck(player)) {
+            this.checkPlayers.add(player);
+            String code = RandomStringUtils.randomNumeric(this.plugin.getConfig().getInt("code-lenght"));
+            if (!this.plugin.getConfig().getBoolean("generate-new-code-always")) {
+                if (this.getCheckCode().get(player.getUniqueId()) == null)
+                    this.putAndSendCode(player, code);
+            } else {
+                this.putAndSendCode(player, code);
+            }
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    plugin.getSitManager().sitPlayer(player);
+                }
+            }.runTaskLater(this.plugin,10L);
+
+        }
+    }
+    public void checkPlayer(Player player) {
+        if (!this.plugin.getConnectStatus()) {
+            player.sendMessage("§4§l[Discord2FA|WARNING] §cHey! please check the console.");
+            this.plugin.getLogger().warning("Ops, the bot connect failed. Please provide the bot connection.");
+            return;
+        }
+        if (this.isAddedToVerifyList(player.getName())) {
+            if (this.plugin.getConfig().getBoolean("auto-verification")) {
+                String currentlyIp = player.getAddress().getAddress().getHostAddress();
+                String lastIp = this.getData(player.getName(),"verify."+player.getName()+".ip","ip","2fa",this.plugin.isMySQLEnabled());
+                if (currentlyIp.equals(lastIp)) {
+                    player.sendMessage(Color.translate(this.plugin.getConfig().getString("messages.auto-verify-success-message")));
+                    return;
+                }
+            }
+            this.addPlayerToCheck(player);
+            player.sendMessage(this.getAuthMessage(true, -1));
+            new CountdownRunnable(player, this.plugin)
+                    .runTaskTimer(this.plugin, 0L, 20L);
+        }
+    }
+    public void removePlayerFromCheck(Player player) {
+        if (this.isInCheck(player)) {
+            this.checkPlayers.remove(player);
+            this.plugin.getSitManager().unSitPlayer(player);
+            if (this.getCheckCode().get(player.getUniqueId()) != null && this.plugin.getConfig().getBoolean("generate-new-code-always") )
+                checkCode.put(player.getUniqueId(), null);
+        }
+    }
+    // Auth
     public void auth(Player player, String ip) {
         boolean mysqlEnabled = this.plugin.isMySQLEnabled();
         if (!mysqlEnabled) {
@@ -73,118 +137,7 @@ public class Discord2FAManager {
         checkCode.put(player.getUniqueId(), null);
         this.plugin.getLogger().info(player.getName()+"'s account was authenticated!");
     }
-    private void sendAndPutCode(Player player,String code) {
-        checkCode.put(player.getUniqueId(),code);
-        String message = this.plugin.getConfig().getString("messages.discord-message");
-        message = message.replace("%code%",this.plugin.getDiscord2FAManager().getCheckCode().get(player.getUniqueId()));
-        String member_id = this.getData(player.getName(),"verify."+player.getName()+".discord","discord","2fa",this.plugin.isMySQLEnabled());
-        if (member_id == null) {
-            this.plugin.getLogger().warning("We're cannot get player's Discord ID?");
-            return;
-        }
-        if (leftRights.get(player.getUniqueId()) == null) {
-            leftRights.put(player.getUniqueId(),this.plugin.getConfig().getInt("number-of-rights"));
-        }
-        User user = this.plugin.getBot().getUserById(member_id);
-        if (user != null) {
-            user.openPrivateChannel().complete().sendMessage((message)).queue();
-        } else {
-            this.plugin.getLogger().warning("Uh, we're cannot find user with id "+member_id+"");
-        }
-    }
-    public void addPlayerToCheck(Player player) {
-        if (!this.isInCheck(player)) {
-            this.checkPlayers.add(player);
-            String code = RandomStringUtils.randomNumeric(this.plugin.getConfig().getInt("code-lenght"));
-            if (!this.plugin.getConfig().getBoolean("generate-new-code-always")) {
-                if (this.getCheckCode().get(player.getUniqueId()) == null) {
-                    this.sendAndPutCode(player, code);
-                }
-            } else {
-                this.sendAndPutCode(player, code);
-            }
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    plugin.getSitManager().sitPlayer(player);
-                }
-            }.runTaskLater(this.plugin,10L);
-
-        }
-    }
-    public void checkPlayer(Player player) {
-        if (!this.plugin.getConnectStatus()) {
-            player.sendMessage("§6Discord2FA §8» §7Hey, please check the console.");
-            this.plugin.getLogger().warning("Ops, the bot connect failed. Please provide bot connection");
-            return;
-        }
-        if (this.isAddedToVerifyList(player.getName())) {
-            if (this.plugin.getConfig().getBoolean("auto-verification")) {
-                String currently_ip = player.getAddress().getAddress().getHostAddress();
-                String last_ip = this.plugin.getDiscord2FAManager().getPlayerIP(player);
-                if (currently_ip.equalsIgnoreCase(last_ip)) {
-                    player.sendMessage(Color.translate(this.plugin.getConfig().getString("messages.auto-verify-success-message")));
-                    return;
-                }
-            }
-            this.addPlayerToCheck(player);
-            player.sendMessage(this.getAuthMessage(true, -1));
-            new CountdownRunnable(player).runTaskTimer(this.plugin, 0L, 20L);
-        }
-    }
-    public void removePlayerFromCheck(Player player) {
-        if (this.isInCheck(player)) {
-            this.checkPlayers.remove(player);
-            this.plugin.getSitManager().unSitPlayer(player);
-            if (this.getCheckCode().get(player.getUniqueId()) != null && this.plugin.getConfig().getBoolean("generate-new-code-always") ) {
-                checkCode.put(player.getUniqueId(), null);
-            }
-        }
-    }
-    public String getPlayerIP(Player player) {
-        return this.getData(player.getName(),"verify."+player.getName()+".ip","ip","2fa",this.plugin.isMySQLEnabled());
-    }
-    public boolean isInCheck(Player player) {
-        return (player != null && this.getCheckPlayers().contains(player));
-    }
-    public boolean isBackupCode(Player player,String code) {
-        String codeData = this.getData(player.getName(),"verify."+player.getName()+".backup-codes","codes","2fa_backup",this.plugin.isMySQLEnabled());
-        if (codeData == null) return false;
-        List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
-        return codesWithList.contains(code) && !code.equals("CURRENTLY_NULL");
-    }
-    public void removeBackupCode(Player player,String code) {
-        if (!this.isBackupCode(player,code)) return;
-        String codeData = this.getData(player.getName(),"verify."+player.getName()+".backup-codes","codes","2fa_backup",this.plugin.isMySQLEnabled());
-        List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
-        codesWithList.remove(code);
-        boolean mysqlEnabled = this.plugin.isMySQLEnabled();
-        StringBuilder codes  = new StringBuilder();
-        for (String c: codesWithList)
-            codes.append(c).append("-");
-        if (!mysqlEnabled) {
-            this.plugin.getYamlDatabase().getDatabaseConfiguration().set("verify." + player.getName() + ".backup-codes", codes.toString());
-            this.plugin.getYamlDatabase().saveDatabaseConfiguration();
-        }else {
-            new BukkitRunnable() {
-                public void run() {
-                    PreparedStatement statement;
-                    try {
-                        statement = plugin.getMySQLDatabase().getConnection().prepareStatement("UPDATE `2fa_backup` SET `codes` = ? WHERE `player` = ?;");
-                        statement.setString(1, codes.toString());
-                        statement.setString(2,player.getName());
-                        statement.executeUpdate();
-                    } catch (SQLException e) { e.printStackTrace(); }
-                }
-            }.runTaskAsynchronously(this.plugin);
-        }
-    }
-    public boolean isAddedToVerifyList(String player_name) {
-        return this.getData(player_name,"verify."+player_name+".discord","discord","2fa",this.plugin.isMySQLEnabled()) != null;
-    }
-    public boolean isBackupCodesGenerated(String player_name) {
-        return this.getData(player_name,"verify."+player_name+".backup-codes","codes","2fa_backup",this.plugin.isMySQLEnabled()) != null;
-    }
+    // Verify list
     public void addPlayerToVerifyList(String player_name, String discord) {
         if (!this.isAddedToVerifyList(player_name)) {
             boolean mysqlEnabled = this.plugin.isMySQLEnabled();
@@ -236,6 +189,7 @@ public class Discord2FAManager {
             }
         }
     }
+    // Back up codes
     public List<String> generateBackupCodes(String player_name) {
         StringBuilder codes  = new StringBuilder();
         boolean mysqlEnabled = this.plugin.isMySQLEnabled();
@@ -279,14 +233,51 @@ public class Discord2FAManager {
         }
         return Arrays.asList(codes.toString().split("-"));
     }
+    public void removeBackupCode(Player player, String code) {
+        if (!this.isBackupCode(player,code))
+            return;
+        String codeData = this.getData(player.getName(),"verify."+player.getName()+".backup-codes","codes","2fa_backup",this.plugin.isMySQLEnabled());
+        List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
+        codesWithList.remove(code);
+        boolean mysqlEnabled = this.plugin.isMySQLEnabled();
+        StringBuilder codes  = new StringBuilder();
+        for (String c: codesWithList)
+            codes.append(c).append("-");
+        if (!mysqlEnabled) {
+            this.plugin.getYamlDatabase().getDatabaseConfiguration().set("verify." + player.getName() + ".backup-codes", codes.toString());
+            this.plugin.getYamlDatabase().saveDatabaseConfiguration();
+        }else {
+            new BukkitRunnable() {
+                public void run() {
+                    PreparedStatement statement;
+                    try {
+                        statement = plugin.getMySQLDatabase().getConnection().prepareStatement("UPDATE `2fa_backup` SET `codes` = ? WHERE `player` = ?;");
+                        statement.setString(1, codes.toString());
+                        statement.setString(2,player.getName());
+                        statement.executeUpdate();
+                    } catch (SQLException e) { e.printStackTrace(); }
+                }
+            }.runTaskAsynchronously(this.plugin);
+        }
+    }
+    // Other getters
     public String[] getAuthMessage(boolean state,int i) {
-        boolean a = state && i == -1;
-        int format = (a ? 1 : 2);
+        boolean a = state && i == -1; int format = (a ? 1 : 2);
         String replace = (a ? "%countdown%" : "%seconds%");
         String replacement = (a ? String.valueOf(this.plugin.getConfig().getInt("auth-countdown")) : i +"§6 second"+(i > 1 ? "s" : ""));
         String authMessage = this.plugin.getConfig().getString("messages.auth-message.format-"+format);
-        authMessage =  authMessage.replace("&","§");
-        authMessage = authMessage.replace(replace,replacement);
+        authMessage =  Color.translate(authMessage);
+        authMessage = authMessage.replace(replace, replacement);
         return  authMessage.split("%nl%");
     }
+    public boolean isBackupCode(Player player,String code) {
+        String codeData = this.getData(player.getName(),"verify."+player.getName()+".backup-codes","codes","2fa_backup",this.plugin.isMySQLEnabled());
+        if (codeData == null)
+            return false;
+        List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
+        return codesWithList.contains(code) && !code.equals("CURRENTLY_NULL");
+    }
+    public boolean isAddedToVerifyList(String player_name) { return this.getData(player_name,"verify."+player_name+".discord","discord","2fa",this.plugin.isMySQLEnabled()) != null; }
+    public boolean isBackupCodesGenerated(String player_name) { return this.getData(player_name,"verify."+player_name+".backup-codes","codes","2fa_backup",this.plugin.isMySQLEnabled()) != null; }
+    public boolean isInCheck(Player player) { return (player != null && this.getCheckPlayers().contains(player)); }
 }

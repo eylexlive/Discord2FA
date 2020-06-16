@@ -10,7 +10,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.2
+ *	Currently version: 2.3
  */
 
 public class BlockPlaceListener implements Listener {

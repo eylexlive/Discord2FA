@@ -6,20 +6,21 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Objects;
 import java.util.UUID;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.2
+ *	Currently version: 2.3
  */
 
 public class CountdownRunnable extends BukkitRunnable {
     private Main plugin;
     private int countdown;
     private Player player;
-    public CountdownRunnable(Player player) {
+    public CountdownRunnable(Player player, Main plugin) {
         this.player = player;
-        this.plugin = Main.getInstance();
+        this.plugin = plugin;
         this.countdown = this.plugin.getConfig().getInt("auth-countdown") - 1;
     }
     @Override
@@ -28,17 +29,16 @@ public class CountdownRunnable extends BukkitRunnable {
             this.cancel();
             UUID uuid = this.player.getUniqueId();
             if (this.plugin.getDiscord2FAManager().getLeftRights().get(uuid) > 0) {
-                this.plugin.getDiscord2FAManager().getLeftRights().put(uuid,this.plugin.getDiscord2FAManager().getLeftRights().get(uuid)-1);
+                this.plugin.getDiscord2FAManager().getLeftRights().put(uuid, this.plugin.getDiscord2FAManager().getLeftRights().get(uuid)-1);
                 String message = this.plugin.getConfig().getString("messages.kick-message");
                 message = message.replace("%rights%",String.valueOf(this.plugin.getDiscord2FAManager().getLeftRights().get(uuid)));
                 player.kickPlayer(Color.translate(message));
-            }else {
+            } else {
                 new BukkitRunnable() {
-                    private Main plugin = Main.getInstance();
                     @Override
                     public void run() {
-                        this.plugin.getDiscord2FAManager().getLeftRights().put(uuid,Integer.parseInt(this.plugin.getConfig().getString("number-of-rights")));
-                        String command = this.plugin.getConfig().getString("rights-reached-console-command");
+                        plugin.getDiscord2FAManager().getLeftRights().put(uuid, plugin.getConfig().getInt("number-of-rights"));
+                        String command = plugin.getConfig().getString("rights-reached-console-command");
                         command = command.replace("%player%",player.getName());
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(),command);
                     }

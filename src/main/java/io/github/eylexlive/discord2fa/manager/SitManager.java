@@ -10,12 +10,11 @@ import java.util.Map;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.2
+ *	Currently version: 2.3
  */
 
 public class SitManager {
-    @Getter
-    private Map<Player,ArmorStand> armorStands = new HashMap<>();
+    @Getter private Map<Player,ArmorStand> armorStands = new HashMap<>();
     public void sitPlayer(Player player) {
         ArmorStand armorStand = (ArmorStand) player.getLocation().getWorld().spawnEntity(player.getLocation(), EntityType.ARMOR_STAND);
         armorStand.setVisible(false);

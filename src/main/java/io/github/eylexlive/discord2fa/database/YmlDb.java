@@ -1,5 +1,6 @@
 package io.github.eylexlive.discord2fa.database;
 
+import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -8,13 +9,13 @@ import java.io.IOException;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.2
+ *	Currently version: 2.3
  */
 
-public class YAMLDatabase {
+public class YmlDb {
     private File databaseFile;
-    private FileConfiguration databaseConfiguration;
-    public YAMLDatabase() {
+    @Getter private FileConfiguration databaseConfiguration;
+    public YmlDb() {
         this.loadDatabaseConfiguration();
     }
     private void loadDatabaseConfiguration() {
@@ -27,8 +28,5 @@ public class YAMLDatabase {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-    public FileConfiguration getDatabaseConfiguration() {
-        return this.databaseConfiguration;
     }
 }

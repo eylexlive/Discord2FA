@@ -1,30 +1,29 @@
-package io.github.eylexlive.discord2fa.listener;
+package io.github.eylexlive.discord2fa.hook.hookevent;
 
 import com.lenis0012.bukkit.loginsecurity.events.AuthActionEvent;
 import com.lenis0012.bukkit.loginsecurity.session.AuthActionType;
 import io.github.eylexlive.discord2fa.Main;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.2
+ *	Currently version: 2.3
  */
 
-public class LoginSecurityListener implements Listener {
+@Deprecated
+public class LoginSecurityEvent implements Listener {
     private Main plugin;
-    public LoginSecurityListener(){
+    public LoginSecurityEvent(){
         this.plugin = Main.getInstance();
     }
-
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void handleLoginSecurityLogin(AuthActionEvent event) {
         Player player = event.getPlayer();
-        if(event.getType() == AuthActionType.LOGIN) {
-            if(this.plugin.isLoginSecuritySupport()){
-                this.plugin.getDiscord2FAManager().checkPlayer(player);
-            }
+        if(event.getType() == AuthActionType.LOGIN && this.plugin.isLoginSecuritySupport()) {
+            this.plugin.getDiscord2FAManager().checkPlayer(player);
         }
     }
 }

@@ -9,43 +9,43 @@ import java.sql.Statement;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.2
+ *	Currently version: 2.3
  */
 
-public class MySQLDatabase {
+public class MysqlDb {
     private Connection connection;
     private Main plugin;
-    public MySQLDatabase() {
+    public MysqlDb() {
         this.plugin = Main.getInstance();
         this.openConnection();
-        this.createTableIfNotExits();
+        this.createTablesIfNotExits();
     }
     public void openConnection() {
         try {
             connection = DriverManager.getConnection("jdbc:mysql://" +
-                    this.plugin.getConfig().getString("mysql.host") + ":" +
-                    this.plugin.getConfig().getInt("mysql.port") + "/" +
-                    this.plugin.getConfig().getString("mysql.database") +
-                    "?useSSL=" + this.plugin.getConfig().getBoolean("mysql.use-ssl") +
-                    "&characterEncoding=UTF-8&autoReconnect=true",
+                            this.plugin.getConfig().getString("mysql.host") + ":" +
+                            this.plugin.getConfig().getInt("mysql.port") + "/" +
+                            this.plugin.getConfig().getString("mysql.database") +
+                            "?useSSL=" + this.plugin.getConfig().getBoolean("mysql.use-ssl") +
+                            "&characterEncoding=UTF-8&autoReconnect=true",
                     this.plugin.getConfig().getString("mysql.username"),
                     this.plugin.getConfig().getString("mysql.password"));
             this.plugin.getLogger().info("[MySQL] Successfully connected to database!");
         } catch (SQLException e) {
             e.printStackTrace();
             this.plugin.getLogger().warning("[MySQL] Connection to database failed!");
-            this.plugin.getLogger().warning("Please make sure that details in config.yml are correct.");
+            this.plugin.getLogger().warning("[MySQL] Please make sure that details in config.yml are correct.");
         }
     }
     public Connection getConnection() {
         if (this.connection == null) {
             try {
                 connection = DriverManager.getConnection("jdbc:mysql://" +
-                        this.plugin.getConfig().getString("mysql.host") + ":" +
-                        this.plugin.getConfig().getInt("mysql.port") + "/" +
-                        this.plugin.getConfig().getString("mysql.database") +
-                        "?useSSL=" + this.plugin.getConfig().getBoolean("mysql.use-ssl") +
-                        "&characterEncoding=UTF-8&autoReconnect=true",
+                                this.plugin.getConfig().getString("mysql.host") + ":" +
+                                this.plugin.getConfig().getInt("mysql.port") + "/" +
+                                this.plugin.getConfig().getString("mysql.database") +
+                                "?useSSL=" + this.plugin.getConfig().getBoolean("mysql.use-ssl") +
+                                "&characterEncoding=UTF-8&autoReconnect=true",
                         this.plugin.getConfig().getString("mysql.username"),
                         this.plugin.getConfig().getString("mysql.password"));
                 this.plugin.getLogger().info("[MySQL] Successfully re-connected to database!");
@@ -55,7 +55,7 @@ public class MySQLDatabase {
         }
         return this.connection;
     }
-    private void createTableIfNotExits() {
+    private void createTablesIfNotExits() {
         try {
             Statement statement = this.getConnection().createStatement();
             try {

@@ -11,21 +11,21 @@ import java.net.URLConnection;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.2
+ *	Currently version: 2.3
  */
 
 public class UpdateCheck {
     private Main plugin;
-    public UpdateCheck() {
+    public UpdateCheck(Main plugin) {
         this.plugin = Main.getInstance();
-        this.checkForUpdate();
+        this.plugin = plugin;
     }
-   private void checkForUpdate() {
+   public void checkUpdate() {
        System.out.println("-----------------------------");
        System.out.println("     Discord2FA Updater     ");
        System.out.println(" ");
-       System.out.println("v"+plugin.getDescription().getVersion()+" running now");
-       if (isAvailable()) {
+       System.out.println("v" + this.plugin.getDescription().getVersion() + " running now");
+       if (this.isAvailable()) {
            System.out.println("A new update is available at");
            System.out.println("spigotmc.org/resources/75451");
            System.out.println(" ");
@@ -36,7 +36,7 @@ public class UpdateCheck {
        }
        System.out.println("-----------------------------");
    }
-   public boolean isAvailable() {
+   private boolean isAvailable() {
        URLConnection urlConnection;
        String spigotPluginVersion;
        try {
