@@ -16,7 +16,6 @@ public class Bot {
     public static JDA jda = null;
     private String token;
     public Bot(String token, Main plugin) {
-        this.plugin = plugin;
         this.token = token;
         this.plugin = plugin;
     }
