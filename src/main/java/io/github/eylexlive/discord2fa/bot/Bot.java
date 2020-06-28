@@ -8,7 +8,7 @@ import javax.security.auth.login.LoginException;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.4
  */
 
 public class Bot {
@@ -16,7 +16,6 @@ public class Bot {
     public static JDA jda = null;
     private String token;
     public Bot(String token, Main plugin) {
-        this.plugin = Main.getInstance();
         this.token = token;
         this.plugin = plugin;
     }

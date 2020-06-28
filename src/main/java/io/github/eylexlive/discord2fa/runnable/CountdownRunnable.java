@@ -6,12 +6,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.Objects;
 import java.util.UUID;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.4
  */
 
 public class CountdownRunnable extends BukkitRunnable {

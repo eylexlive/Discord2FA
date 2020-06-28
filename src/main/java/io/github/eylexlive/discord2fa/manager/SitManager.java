@@ -2,6 +2,7 @@ package io.github.eylexlive.discord2fa.manager;
 
 import lombok.Getter;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
@@ -10,7 +11,7 @@ import java.util.Map;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.4
  */
 
 public class SitManager {

@@ -12,14 +12,14 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.4
  */
 
 public class Discord2FACommand implements CommandExecutor {
     private Main plugin;
     private String[] mainMessage;
-    public Discord2FACommand() {
-        this.plugin = Main.getInstance();
+    public Discord2FACommand(Main plugin) {
+        this.plugin = plugin;
         this.mainMessage = new String[]
                 {
                 "§6§lDiscord2FA running on the server. §f§lVersion: §6§lv"+
@@ -74,7 +74,7 @@ public class Discord2FACommand implements CommandExecutor {
                         this.plugin.getDiscord2FAManager().removePlayerFromCheck(serverPlayer);
                         this.plugin.getSitManager().unSitPlayer(serverPlayer);
 
-                    }else if (args[0].equalsIgnoreCase("generatebackupcodes")) {
+                    } else if (args[0].equalsIgnoreCase("generatebackupcodes")) {
                         List<String> codes = this.plugin.getDiscord2FAManager().generateBackupCodes(player);
                         String message = this.plugin.getConfig().getString(prefix + "backup-codes-generated");
                         message = message.replace("%player%",player);
@@ -90,7 +90,6 @@ public class Discord2FACommand implements CommandExecutor {
                         message = message.replace("%player%",player);
                         message = message.replace("%id%",discord);
                         sender.sendMessage(Color.translate(message));
-
                     } else if (args[0].equalsIgnoreCase("removefromverifylist")) {
                         this.plugin.getDiscord2FAManager().removePlayerFromVerifyList(player);
                         String message = this.plugin.getConfig().getString(prefix + "removed-from-verifyList-message");
@@ -99,7 +98,6 @@ public class Discord2FACommand implements CommandExecutor {
                         sender.sendMessage(Color.translate(message));
                     }
                     break;
-
             }
         }
         return true;

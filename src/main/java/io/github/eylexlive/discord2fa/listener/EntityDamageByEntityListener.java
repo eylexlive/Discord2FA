@@ -10,13 +10,13 @@ import org.bukkit.projectiles.ProjectileSource;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.4
  */
 
 public class EntityDamageByEntityListener implements Listener {
     private Main plugin;
-    public EntityDamageByEntityListener() {
-        this.plugin = Main.getInstance();
+    public EntityDamageByEntityListener(Main plugin) {
+        this.plugin = plugin;
     }
     @EventHandler
     public void handleEntityDamageEntity(EntityDamageByEntityEvent event) {
@@ -25,8 +25,8 @@ public class EntityDamageByEntityListener implements Listener {
             if (this.plugin.getDiscord2FAManager().isInCheck(player)) {
                 event.setCancelled(true);
             }
-        }else if (!(event.getDamager() instanceof  Player) && event.getEntity() instanceof  Player) {
-            if (this.plugin.getDiscord2FAManager().isInCheck((Player)event.getEntity())) {
+        } else if (!(event.getDamager() instanceof  Player) && event.getEntity() instanceof  Player) {
+            if (this.plugin.getDiscord2FAManager().isInCheck((Player) event.getEntity())) {
                 event.setCancelled(true);
             }
         } else if (event.getEntity() instanceof Player && event.getDamager() instanceof Projectile) {

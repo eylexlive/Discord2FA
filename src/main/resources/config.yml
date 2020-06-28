@@ -67,7 +67,7 @@ messages:
     format-1: ' %nl%
     &8&l- &f&lHEY! &6You must be authenticated to connect!
     %nl% %nl%
-    &8&l- &6We are sent a code,please check your discord direct messages!.
+    &8&l- &6We are sent a code, please check your discord direct messages!.
     %nl%
     &8&l- &6If the code has not been sent,check your direct message settings and try again.
     %nl%

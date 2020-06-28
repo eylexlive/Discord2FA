@@ -10,29 +10,26 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.4
  */
 
 public class PlayerCommandUseListener implements Listener {
     private Main plugin;
-    public PlayerCommandUseListener() {
-        this.plugin = Main.getInstance();
+    public PlayerCommandUseListener(Main plugin) {
+        this.plugin = plugin;
     }
-    @EventHandler(priority = EventPriority.LOWEST,ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void handleCommandPreProcess(PlayerCommandPreprocessEvent event) {
         String settingsPrefix = "canceled-events.";
-        if (!this.plugin.getConfig().getBoolean(settingsPrefix +"command-use.cancel")) {
+        if (!this.plugin.getConfig().getBoolean(settingsPrefix +"command-use.cancel"))
             return;
-        }
         Player player= event.getPlayer();
         if (this.plugin.getDiscord2FAManager().isInCheck(player)) {
             String[] args = event.getMessage().split(" ");
-            for (String whiteListedCommand : this.plugin.getConfig().getStringList(settingsPrefix +"command-use.whitelisted-commands")) {
-                if (!args[0].equalsIgnoreCase("/"+whiteListedCommand)) {
-                    event.setCancelled(true);
-                    player.sendMessage(Color.translate(this.plugin.getConfig().getString("messages.event-messages.command-use-message")));
-                }
-            }
+            this.plugin.getConfig().getStringList(settingsPrefix +"command-use.whitelisted-commands").stream().filter(whitelistedCommand -> !args[0].equalsIgnoreCase("/"+whitelistedCommand)).forEach(whitelistedCommand -> {
+                event.setCancelled(true);
+                player.sendMessage(Color.translate(this.plugin.getConfig().getString("messages.event-messages.command-use-message")));
+            });
         }
     }
 }

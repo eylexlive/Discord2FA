@@ -16,7 +16,7 @@ import java.util.*;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.4
  */
 
 public class Discord2FAManager {
@@ -24,8 +24,8 @@ public class Discord2FAManager {
     @Getter private Map<UUID, String> checkCode = new HashMap<>();
     @Getter private ArrayList<Player> checkPlayers = new ArrayList<>();
     @Getter private Map<UUID,Integer> leftRights = new HashMap<>();
-    public Discord2FAManager() {
-        this.plugin = Main.getInstance();
+    public Discord2FAManager(Main plugin) {
+        this.plugin = plugin;
     }
     // Data getter
     private String getData(String player, String ymlPath,String sqlPath, String sqlTable, boolean mysqlEnabled) {

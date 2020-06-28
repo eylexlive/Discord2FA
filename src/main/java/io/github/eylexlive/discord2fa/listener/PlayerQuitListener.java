@@ -8,18 +8,18 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.4
  */
 
 public class PlayerQuitListener implements Listener {
     private Main plugin;
-    public PlayerQuitListener() {
-        this.plugin = Main.getInstance();
+    public PlayerQuitListener(Main plugin) {
+        this.plugin = plugin;
     }
     @EventHandler
     public void handleQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        if (this.plugin.getDiscord2FAManager().isAddedToVerifyList(player.getName() ) && this.plugin.getDiscord2FAManager().isInCheck(player)) {
+        if (this.plugin.getDiscord2FAManager().isInCheck(player)) {
             this.plugin.getDiscord2FAManager().removePlayerFromCheck(player);
         }
     }

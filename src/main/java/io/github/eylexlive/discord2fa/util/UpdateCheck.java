@@ -11,13 +11,12 @@ import java.net.URLConnection;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.4
  */
 
 public class UpdateCheck {
     private Main plugin;
     public UpdateCheck(Main plugin) {
-        this.plugin = Main.getInstance();
         this.plugin = plugin;
     }
    public void checkUpdate() {
