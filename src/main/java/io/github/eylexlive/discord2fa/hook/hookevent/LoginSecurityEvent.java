@@ -10,7 +10,7 @@ import org.bukkit.event.Listener;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.4
+ *	Currently version: 2.5
  */
 
 @Deprecated

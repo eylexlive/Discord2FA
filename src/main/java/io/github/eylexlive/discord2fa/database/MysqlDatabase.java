@@ -1,6 +1,7 @@
 package io.github.eylexlive.discord2fa.database;
 
 import io.github.eylexlive.discord2fa.Main;
+import lombok.SneakyThrows;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,7 +10,7 @@ import java.sql.Statement;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.4
+ *	Currently version: 2.5
  */
 
 public class MysqlDatabase {
@@ -20,28 +21,15 @@ public class MysqlDatabase {
         this.openConnection(false);
         this.createTablesIfNotExits();
     }
-    public void openConnection(boolean isReconnect) {
+    public synchronized void openConnection(boolean isReconnect) {
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://" +
-                            this.plugin.getConfig().getString("mysql.host") + ":" +
-                            this.plugin.getConfig().getInt("mysql.port") + "/" +
-                            this.plugin.getConfig().getString("mysql.database") +
-                            "?useSSL=" + this.plugin.getConfig().getBoolean("mysql.use-ssl") +
-                            "&characterEncoding=UTF-8&autoReconnect=true",
-                    this.plugin.getConfig().getString("mysql.username"),
-                    this.plugin.getConfig().getString("mysql.password"));
-            this.plugin.getLogger().info("[MySQL] Successfully " + (isReconnect ? "re-" : "") + "connected to database!");
+            connection = DriverManager.getConnection("jdbc:mysql://" + this.plugin.getConfig().getString("mysql.host") + ":" + this.plugin.getConfig().getInt("mysql.port") + "/" + this.plugin.getConfig().getString("mysql.database") + "?autoReconnect=true" + "&useSSL=" + this.plugin.getConfig().getBoolean("mysql.use-ssl") + "&characterEncoding=UTF-8", this.plugin.getConfig().getString("mysql.username"), this.plugin.getConfig().getString("mysql.password"));
+            this.plugin.getLogger().info("[MySQL] Successfully " + (isReconnect ? "re-" : "") + " connected to database!");
         } catch (SQLException e) {
             e.printStackTrace();
-            this.plugin.getLogger().warning("[MySQL] "+ (isReconnect ? "Re-" : "") + "Connection to database failed!");
-            if (isReconnect) return;
+            this.plugin.getLogger().warning("[MySQL] " + (isReconnect ? "Re-" : "") + "Connection to database failed!");
             this.plugin.getLogger().warning("[MySQL] Please make sure that details in config.yml are correct.");
         }
-    }
-    public Connection getConnection() {
-        if (this.connection == null)
-            this.openConnection(true);
-        return this.connection;
     }
     private void createTablesIfNotExits() {
         try {
@@ -52,8 +40,15 @@ public class MysqlDatabase {
             } catch (SQLException e) {
                 System.out.print(e.getMessage());
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    @SneakyThrows
+    public Connection getConnection() {
+        if (this.connection == null || !this.connection.isValid(1)) {
+            this.openConnection(true);
+        }
+        return this.connection;
     }
 }

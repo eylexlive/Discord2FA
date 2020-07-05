@@ -19,7 +19,7 @@ import java.util.Arrays;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.3
+ *	Currently version: 2.5
  */
 
 public class Main extends JavaPlugin {
@@ -34,9 +34,7 @@ public class Main extends JavaPlugin {
         instance = this;
         this.getConfig().options().copyDefaults(true);
         this.saveConfig();
-        this.discord2FAManager = new Discord2FAManager(this);
-        this.sitManager = new SitManager();
-        this.logManager = new LogManager(this);
+        this.registerManagers();
         this.registerCommands();
         this.registerListeners();
         new Metrics(this);
@@ -49,14 +47,20 @@ public class Main extends JavaPlugin {
     public void onDisable() {
         this.saveConfig();
         this.sitManager.getArmorStands().values().forEach(Entity::remove);
-        if (!this.isMySQLEnabled())
+        if (!this.isMySQLEnabled()) {
             this.yamlDatabase.saveDatabaseConfiguration();
+        }
     }
     private void registerListeners() {
         PluginManager pluginManager = this.getServer().getPluginManager();
         Arrays.asList(new AsyncPlayerChatListener(this), new BlockBreakListener(this), new BlockPlaceListener(this), new EntityDamageByEntityListener(this), new InventoryClickListener(this), new InventoryOpenListener(this), new PlayerCommandUseListener(this), new PlayerDropItemListener(this), new PlayerInteractListener(this), new PlayerJoinListener(this), new EntityDismountListener(this), new PlayerQuitListener(this)).forEach(listener ->
                 pluginManager.registerEvents(listener, this)
         );
+    }
+    private void registerManagers() {
+        this.discord2FAManager = new Discord2FAManager(this);
+        this.sitManager = new SitManager();
+        this.logManager = new LogManager(this);
     }
     private void registerCommands() {
         this.getCommand("auth").setExecutor(new AuthCommand(this));

@@ -12,7 +12,7 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.4
+ *	Currently version: 2.5
  */
 
 public class Discord2FACommand implements CommandExecutor {

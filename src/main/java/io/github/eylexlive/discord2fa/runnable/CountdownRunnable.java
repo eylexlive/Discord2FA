@@ -10,7 +10,7 @@ import java.util.UUID;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.4
+ *	Currently version: 2.5
  */
 
 public class CountdownRunnable extends BukkitRunnable {
@@ -44,10 +44,10 @@ public class CountdownRunnable extends BukkitRunnable {
                 }.runTaskLater(this.plugin,2L);
             }
             return;
-        }else if (!this.plugin.getDiscord2FAManager().isInCheck(player)) {
+        } else if (!this.plugin.getDiscord2FAManager().isInCheck(player)) {
             this.cancel();
             return;
-        }else if (countdown % 10 == 0 && countdown > 6 || countdown < 6 && countdown > 0) {
+        } else if (countdown % 10 == 0 && countdown > 6 || countdown < 6 && countdown > 0) {
             player.sendMessage(this.plugin.getDiscord2FAManager().getAuthMessage(false, countdown));
         }
         countdown--;

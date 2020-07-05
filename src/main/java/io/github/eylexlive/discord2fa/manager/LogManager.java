@@ -6,7 +6,7 @@ import java.util.Objects;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.4
+ *	Currently version: 2.5
  */
 
 public class LogManager {
@@ -18,7 +18,7 @@ public class LogManager {
         this.plugin.getConfig().getStringList("logs.admin-ids").forEach(id-> {
             try {
                 Objects.requireNonNull(this.plugin.getBot().getUserById(id)).openPrivateChannel().complete().sendMessage(path).queue();
-            }catch (Exception e) {
+            } catch (Exception e) {
                 this.plugin.getLogger().warning("Could not find discord user with id " + id);
             }
         });
