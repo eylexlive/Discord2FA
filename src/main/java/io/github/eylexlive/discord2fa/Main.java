@@ -19,7 +19,11 @@ import java.util.Arrays;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
+<<<<<<< HEAD
  *	Currently version: 2.5
+=======
+ *	Currently version: 2.4
+>>>>>>> dfad98a4fc7847a4362b00b745bb4d6b273ef8dd
  */
 
 public class Main extends JavaPlugin {
