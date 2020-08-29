@@ -10,25 +10,28 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class PlayerDropItemListener implements Listener {
-    private Main plugin;
+    private final Main plugin;
     public PlayerDropItemListener(Main plugin) {
         this.plugin = plugin;
     }
     @EventHandler
     public void handleItemDrop(PlayerDropItemEvent event) {
-        String settingsPrefix = "canceled-events.";
+        final String settingsPrefix = "canceled-events.";
         if (!this.plugin.getConfig().getBoolean(settingsPrefix+"item-drop.cancel"))
             return;
-        Player player= event.getPlayer();
+        final Player player= event.getPlayer();
         if (this.plugin.getDiscord2FAManager().isInCheck(player)) {
-            this.plugin.getConfig().getStringList(settingsPrefix+"item-drop.whitelisted-materials").stream().filter(whitelistedMaterial -> event.getItemDrop().getItemStack().getType().getId() != Material.getMaterial(whitelistedMaterial).getId()).forEach(whitelistedMaterial -> {
-                event.setCancelled(true);
-                player.sendMessage(Color.translate(this.plugin.getConfig().getString("messages.event-messages.item-drop-message")));
-            });
+            this.plugin.getConfig().getStringList(settingsPrefix + "item-drop.whitelisted-materials")
+                    .stream()
+                    .filter(whitelistedMaterial -> event.getItemDrop().getItemStack().getType().getId() != Material.getMaterial(whitelistedMaterial).getId())
+                    .forEach(whitelistedMaterial -> {
+                        event.setCancelled(true);
+                        player.sendMessage(Color.translate(this.plugin.getConfig().getString("messages.event-messages.item-drop-message")));
+                    });
         }
     }
 }

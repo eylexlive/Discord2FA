@@ -8,22 +8,25 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class InventoryOpenListener implements Listener {
-    private Main plugin;
+    private final Main plugin;
     public InventoryOpenListener(Main plugin) {
         this.plugin = plugin;
     }
     @EventHandler
     public void handleInvOpen(InventoryOpenEvent event) {
-        String settingsPrefix = "canceled-events.";
+        final String settingsPrefix = "canceled-events.";
         if (!this.plugin.getConfig().getBoolean(settingsPrefix+"inventory-open.cancel"))
             return;
-        Player player = (Player) event.getPlayer();
+        final Player player = (Player) event.getPlayer();
         if (this.plugin.getDiscord2FAManager().isInCheck(player)) {
-            this.plugin.getConfig().getStringList(settingsPrefix+"inventory-open.whitelisted-inventory-types").stream().filter(whitelistedType -> !event.getInventory().getType().name().equalsIgnoreCase(whitelistedType)).forEach(whitelistedType -> event.setCancelled(true));
+            this.plugin.getConfig().getStringList(settingsPrefix + "inventory-open.whitelisted-inventory-types")
+                    .stream()
+                    .filter(whitelistedType -> !event.getInventory().getType().name().equalsIgnoreCase(whitelistedType))
+                    .forEach(whitelistedType -> event.setCancelled(true));
         }
     }
 }

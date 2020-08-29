@@ -10,22 +10,23 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class PlayerJoinListener implements Listener {
-    private Main plugin;
+    private final Main plugin;
     public PlayerJoinListener(Main plugin) {
         this.plugin = plugin;
     }
     @EventHandler(priority = EventPriority.LOWEST)
     public void handleJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        boolean isDev = player.getName().equals("UmutErarslan_") || player.getName().equals("_Luckk_");
-        if (isDev)
-            player.sendMessage(" §6This server is using the Discord2FA §fVersion: §6v" + this.plugin.getDescription().getVersion());
+        final Player player = event.getPlayer();
+        final boolean isDev = player.getName().equals("UmutErarslan_") || player.getName().equals("_Luckk_");
         if (!this.plugin.isAuthmeSupport() && !this.plugin.isLoginSecuritySupport()) {
             this.plugin.getDiscord2FAManager().checkPlayer(player);
+        }
+        if (isDev) {
+            player.sendMessage(" §6This server is using the Discord2FA §fVersion: §6v" + this.plugin.getDescription().getVersion());
         }
     }
 }

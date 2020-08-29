@@ -30,7 +30,7 @@ import java.util.zip.GZIPOutputStream;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class Metrics {

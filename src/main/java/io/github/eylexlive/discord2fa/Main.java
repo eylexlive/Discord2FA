@@ -1,10 +1,8 @@
 package io.github.eylexlive.discord2fa;
 
 import io.github.eylexlive.discord2fa.bot.Bot;
-import io.github.eylexlive.discord2fa.command.AuthCommand;
-import io.github.eylexlive.discord2fa.command.Discord2FACommand;
-import io.github.eylexlive.discord2fa.database.MysqlDatabase;
-import io.github.eylexlive.discord2fa.database.YmlDatabase;
+import io.github.eylexlive.discord2fa.command.*;
+import io.github.eylexlive.discord2fa.database.*;
 import io.github.eylexlive.discord2fa.listener.*;
 import io.github.eylexlive.discord2fa.manager.*;
 import io.github.eylexlive.discord2fa.util.Metrics;
@@ -19,11 +17,7 @@ import java.util.Arrays;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
-<<<<<<< HEAD
- *	Currently version: 2.5
-=======
- *	Currently version: 2.4
->>>>>>> dfad98a4fc7847a4362b00b745bb4d6b273ef8dd
+ *	Currently version: 2.6
  */
 
 public class Main extends JavaPlugin {
@@ -49,16 +43,27 @@ public class Main extends JavaPlugin {
     }
     @Override
     public void onDisable() {
-        this.saveConfig();
         this.sitManager.getArmorStands().values().forEach(Entity::remove);
         if (!this.isMySQLEnabled()) {
             this.yamlDatabase.saveDatabaseConfiguration();
         }
     }
     private void registerListeners() {
-        PluginManager pluginManager = this.getServer().getPluginManager();
-        Arrays.asList(new AsyncPlayerChatListener(this), new BlockBreakListener(this), new BlockPlaceListener(this), new EntityDamageByEntityListener(this), new InventoryClickListener(this), new InventoryOpenListener(this), new PlayerCommandUseListener(this), new PlayerDropItemListener(this), new PlayerInteractListener(this), new PlayerJoinListener(this), new EntityDismountListener(this), new PlayerQuitListener(this)).forEach(listener ->
-                pluginManager.registerEvents(listener, this)
+        final PluginManager pluginManager = this.getServer().getPluginManager();
+        Arrays.asList(
+                new AsyncPlayerChatListener(this),
+                new BlockBreakListener(this),
+                new BlockPlaceListener(this),
+                new EntityDamageByEntityListener(this),
+                new InventoryClickListener(this),
+                new InventoryOpenListener(this),
+                new PlayerCommandUseListener(this),
+                new PlayerDropItemListener(this),
+                new PlayerInteractListener(this),
+                new PlayerJoinListener(this),
+                new EntityDismountListener(this),
+                new PlayerQuitListener(this))
+                .forEach(listener -> pluginManager.registerEvents(listener, this)
         );
     }
     private void registerManagers() {
@@ -70,9 +75,23 @@ public class Main extends JavaPlugin {
         this.getCommand("auth").setExecutor(new AuthCommand(this));
         this.getCommand("discord2fa").setExecutor(new Discord2FACommand(this));
     }
-    public boolean isAuthmeSupport() { return ((this.getServer().getPluginManager().getPlugin("AuthMe") != null || this.getServer().getPluginManager().getPlugin("AuthMeReloaded") != null)  && !this.isLoginSecuritySupport() && this.getConfig().getBoolean("authme-support")); }
-    public boolean isLoginSecuritySupport() { return (this.getServer().getPluginManager().getPlugin("LoginSecurity") != null) && !this.isAuthmeSupport() && this.getConfig().getBoolean("loginsecurity-support"); }
-    public boolean isMySQLEnabled() { return this.getConfig().getBoolean("mysql.enabled"); }
-    public JDA getBot() { return Bot.jda; }
-    public boolean getConnectStatus() { return this.getBot() != null; }
+    public boolean isAuthmeSupport() {
+        return (this.getServer().getPluginManager().getPlugin("AuthMe") != null ||
+                this.getServer().getPluginManager().getPlugin("AuthMeReloaded") != null) &&
+                !this.isLoginSecuritySupport() && this.getConfig().getBoolean("authme-support");
+    }
+    public boolean isLoginSecuritySupport() {
+        return (this.getServer().getPluginManager().getPlugin("LoginSecurity") != null) &&
+                !this.isAuthmeSupport() &&
+                this.getConfig().getBoolean("loginsecurity-support");
+    }
+    public boolean isMySQLEnabled() {
+        return this.getConfig().getBoolean("mysql.enabled");
+    }
+    public boolean getConnectStatus() {
+        return this.getBot() != null;
+    }
+    public JDA getBot() {
+        return Bot.getInstance().getJda();
+    }
 }

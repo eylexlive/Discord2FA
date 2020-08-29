@@ -1,21 +1,20 @@
 package io.github.eylexlive.discord2fa.util;
 
 import io.github.eylexlive.discord2fa.Main;
-import org.bukkit.scheduler.BukkitRunnable;
+import lombok.SneakyThrows;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class UpdateCheck {
-    private Main plugin;
+    private final Main plugin;
     public UpdateCheck(Main plugin) {
         this.plugin = plugin;
     }
@@ -35,15 +34,15 @@ public class UpdateCheck {
        }
        System.out.println("-----------------------------");
    }
+   @SneakyThrows
    private boolean isAvailable() {
-       URLConnection urlConnection;
-       String spigotPluginVersion;
-       try {
-           urlConnection = new URL("https://api.spigotmc.org/legacy/update.php?resource=75451").openConnection();
-           spigotPluginVersion = (new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))).readLine();
-       } catch (IOException e) {
-           return false;
-       }
+       final URLConnection urlConnection = new URL(
+               "https://api.spigotmc.org/legacy/update.php?resource=75451")
+               .openConnection();
+       final String spigotPluginVersion = new BufferedReader(
+               new InputStreamReader(
+                       urlConnection.getInputStream())
+       ).readLine();
        return !this.plugin.getDescription().getVersion().equals(spigotPluginVersion);
    }
 }

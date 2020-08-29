@@ -7,17 +7,19 @@ import java.util.Arrays;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class HookManager {
-    private Main plugin;
+    private final Main plugin;
     public HookManager(Main plugin) {
         this.plugin = plugin;
     }
     public void hook() {
         Arrays.asList("Authme", "LoginSecurity").forEach(hookPl ->  {
-            PluginHook pluginHook = new PluginHook(hookPl, this.plugin, this.plugin.getConfig().getBoolean(hookPl.toLowerCase() + "-support"));
+            final PluginHook pluginHook = new PluginHook(
+                    hookPl, this.plugin, this.plugin.getConfig().getBoolean(hookPl.toLowerCase() + "-support")
+            );
             pluginHook.hook();
         });
     }

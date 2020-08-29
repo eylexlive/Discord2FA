@@ -6,21 +6,20 @@ import java.util.Objects;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class LogManager {
-    private Main plugin;
+    private final Main plugin;
     public LogManager(Main plugin) {
         this.plugin = plugin;
     }
     public void sendLog(String path) {
-        this.plugin.getConfig().getStringList("logs.admin-ids").forEach(id-> {
-            try {
-                Objects.requireNonNull(this.plugin.getBot().getUserById(id)).openPrivateChannel().complete().sendMessage(path).queue();
-            } catch (Exception e) {
-                this.plugin.getLogger().warning("Could not find discord user with id " + id);
-            }
-        });
+        this.plugin.getConfig().getStringList("logs.admin-ids")
+                .forEach(id -> Objects.requireNonNull(this.plugin.getBot().getUserById(id))
+                .openPrivateChannel()
+                .complete()
+                .sendMessage(path)
+                .queue());
     }
 }

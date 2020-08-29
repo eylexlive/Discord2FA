@@ -9,20 +9,20 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class EntityDismountListener implements Listener {
-    private Main plugin;
+    private final Main plugin;
     public EntityDismountListener(Main plugin) {
         this.plugin = plugin;
     }
     @EventHandler
-    public void handleEntityDimount(EntityDismountEvent event) {
+    public void handleEntityDismount(EntityDismountEvent event) {
         if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
+            final Player player = (Player) event.getEntity();
             if (event.getDismounted() instanceof ArmorStand) {
-                ArmorStand armorStand = (ArmorStand) event.getDismounted();
+                final ArmorStand armorStand = (ArmorStand) event.getDismounted();
                 if (this.plugin.getDiscord2FAManager().isInCheck(player) && this.plugin.getSitManager().getArmorStands().get(player).getUniqueId().toString().equals(armorStand.getUniqueId().toString())) {
                     event.setCancelled(true);
                 }

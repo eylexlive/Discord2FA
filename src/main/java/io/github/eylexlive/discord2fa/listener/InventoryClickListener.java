@@ -8,23 +8,26 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class InventoryClickListener implements Listener {
-    private Main plugin;
+    private final Main plugin;
     public InventoryClickListener(Main plugin) {
         this.plugin = plugin;
     }
     @EventHandler
     public void handleInventoryClick(InventoryClickEvent event) {
-        String settingsPrefix = "canceled-events.";
+        final String settingsPrefix = "canceled-events.";
         if (event.getWhoClicked() instanceof Player) {
             if (!this.plugin.getConfig().getBoolean(settingsPrefix+"inventory-click.cancel"))
                 return;
-            Player player = (Player) event.getWhoClicked();
+            final Player player = (Player) event.getWhoClicked();
             if (this.plugin.getDiscord2FAManager().isInCheck(player) && event.getClickedInventory() != null && event.getCurrentItem() != null) {
-                this.plugin.getConfig().getStringList(settingsPrefix+"inventory-click.whitelisted-materials").stream().filter(whitelistedMaterial -> !event.getCurrentItem().getType().name().equalsIgnoreCase(whitelistedMaterial)) .forEach(whitelistedMaterial -> event.setCancelled(true));
+                this.plugin.getConfig().getStringList(settingsPrefix + "inventory-click.whitelisted-materials")
+                        .stream()
+                        .filter(whitelistedMaterial -> !event.getCurrentItem().getType().name().equalsIgnoreCase(whitelistedMaterial))
+                        .forEach(whitelistedMaterial -> event.setCancelled(true));
             }
         }
     }

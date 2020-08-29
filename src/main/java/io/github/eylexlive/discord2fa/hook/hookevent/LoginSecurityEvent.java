@@ -10,18 +10,18 @@ import org.bukkit.event.Listener;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 @Deprecated
 public class LoginSecurityEvent implements Listener {
-    private Main plugin;
+    private final Main plugin;
     public LoginSecurityEvent(){
         this.plugin = Main.getInstance();
     }
     @EventHandler(priority = EventPriority.HIGHEST)
     public void handleLoginSecurityLogin(AuthActionEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
         if(event.getType() == AuthActionType.LOGIN && this.plugin.isLoginSecuritySupport()) {
             this.plugin.getDiscord2FAManager().checkPlayer(player);
         }

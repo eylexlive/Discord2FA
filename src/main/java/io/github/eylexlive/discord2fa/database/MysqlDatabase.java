@@ -10,12 +10,12 @@ import java.sql.Statement;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.5
+ *	Currently version: 2.6
  */
 
 public class MysqlDatabase {
     private Connection connection;
-    private Main plugin;
+    private final Main plugin;
     public MysqlDatabase(Main plugin) {
         this.plugin = plugin;
         this.openConnection(false);
@@ -23,7 +23,18 @@ public class MysqlDatabase {
     }
     public synchronized void openConnection(boolean isReconnect) {
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://" + this.plugin.getConfig().getString("mysql.host") + ":" + this.plugin.getConfig().getInt("mysql.port") + "/" + this.plugin.getConfig().getString("mysql.database") + "?autoReconnect=true" + "&useSSL=" + this.plugin.getConfig().getBoolean("mysql.use-ssl") + "&characterEncoding=UTF-8", this.plugin.getConfig().getString("mysql.username"), this.plugin.getConfig().getString("mysql.password"));
+            connection = DriverManager.getConnection(
+                    "jdbc:mysql://"
+                            + this.plugin.getConfig().getString("mysql.host")
+                            + ":" + this.plugin.getConfig().getInt("mysql.port")
+                            + "/" + this.plugin.getConfig().getString("mysql.database")
+                            + "?autoReconnect=true"
+                            + "&useSSL="
+                            + this.plugin.getConfig().getBoolean("mysql.use-ssl")
+                            + "&characterEncoding=UTF-8",
+                    this.plugin.getConfig().getString("mysql.username"),
+                    this.plugin.getConfig().getString("mysql.password")
+            );
             this.plugin.getLogger().info("[MySQL] Successfully " + (isReconnect ? "re-" : "") + " connected to database!");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -31,18 +42,13 @@ public class MysqlDatabase {
             this.plugin.getLogger().warning("[MySQL] Please make sure that details in config.yml are correct.");
         }
     }
+    @SneakyThrows
     private void createTablesIfNotExits() {
-        try {
-            Statement statement = this.getConnection().createStatement();
-            try {
-                statement.executeUpdate("CREATE TABLE IF NOT EXISTS `" + "2fa_backup" + "`(`player` TEXT, `codes` VARCHAR("+(this.plugin.getConfig().getInt("code-lenght")*10+10)+"))");
-                statement.executeUpdate("CREATE TABLE IF NOT EXISTS `" + "2fa" + "`(`player` TEXT, `discord` VARCHAR(60), `ip` TEXT)");
-            } catch (SQLException e) {
-                System.out.print(e.getMessage());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        final Statement statement = this.getConnection().createStatement();
+        statement.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS `" + "2fa_backup" + "`(`player` TEXT, `codes` VARCHAR(" + (this.plugin.getConfig().getInt("code-lenght")*10+10)+"))");
+        statement.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS `" + "2fa" + "`(`player` TEXT, `discord` VARCHAR(60), `ip` TEXT)");
     }
     @SneakyThrows
     public Connection getConnection() {
