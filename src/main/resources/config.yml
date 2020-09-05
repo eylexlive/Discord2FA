@@ -10,7 +10,7 @@ mysql:
 bot-token: Your token here.
 auth-countdown: 60
 number-of-rights: 5
-rights-reached-console-command: 'tempban %player% 20m'
+rights-reached-console-command: 'tempban %player% 20m 2FA Failed'
 check-for-updates: true
 generate-new-code-always: true
 auto-verification: true

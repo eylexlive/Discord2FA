@@ -1,15 +1,17 @@
 package io.github.eylexlive.discord2fa.listener;
 
 import io.github.eylexlive.discord2fa.Main;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.6
+ *	Currently version: 2.7
  */
 
 public class EntityDismountListener implements Listener {

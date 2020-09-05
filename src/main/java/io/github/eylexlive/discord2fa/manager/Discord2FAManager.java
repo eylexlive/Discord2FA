@@ -18,7 +18,7 @@ import java.util.*;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.6
+ *	Currently version: 2.7
  */
 
 public class Discord2FAManager {
@@ -73,12 +73,20 @@ public class Discord2FAManager {
         } else {
             this.setThenSend(player, code);
         }
-        Bukkit.getScheduler().runTaskLater(this.plugin, new BukkitRunnable() {
+        new BukkitRunnable() {
             @Override
             public void run() {
                 Discord2FAManager.this.plugin.getSitManager().sitPlayer(player);
             }
+        }.runTaskLater(this.plugin, 10L);
+      /*  Bukkit.getScheduler().runTaskLater(this.plugin, new BukkitRunnable() {
+            @Override
+            public void run() {
+
+            }
         }, 10L);
+
+       */
     }
     public void checkPlayer(Player player) {
         if (!this.plugin.getConnectStatus()) {
