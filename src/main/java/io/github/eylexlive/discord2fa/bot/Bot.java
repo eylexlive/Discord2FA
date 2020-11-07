@@ -2,6 +2,7 @@ package io.github.eylexlive.discord2fa.bot;
 
 import io.github.eylexlive.discord2fa.Main;
 import lombok.Getter;
+import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 
@@ -9,7 +10,7 @@ import javax.security.auth.login.LoginException;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.7
+ *	Currently version: 2.8
  */
 
 public class Bot {
@@ -28,7 +29,8 @@ public class Bot {
                 this.plugin.getLogger().warning("Please put your bot's token in config.");
                 return;
             }
-            this.jda = new JDABuilder(this.token)
+            this.jda = new JDABuilder(AccountType.BOT)
+                    .setToken(this.token)
                     .build();
         } catch (LoginException e) {
             this.plugin.getLogger().severe("Bot failed to connect!");

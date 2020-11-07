@@ -5,9 +5,8 @@ import io.github.eylexlive.discord2fa.runnable.CountdownRunnable;
 import io.github.eylexlive.discord2fa.util.Color;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.Member;
 import org.apache.commons.lang.RandomStringUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -15,10 +14,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.7
+ *	Currently version: 2.8
  */
 
 public class Discord2FAManager {
@@ -34,7 +34,7 @@ public class Discord2FAManager {
         if (!mysqlEnabled)
             return this.plugin.getYamlDatabase().getDatabaseConfiguration().getString(ymlPath);
         final PreparedStatement statement =  this.plugin.getMySQLDatabase().getConnection().prepareStatement(
-                "SELECT * FROM `"+sqlTable+"` WHERE `player` = ?;");
+                "SELECT * FROM `"+ sqlTable +"` WHERE `player` = ?;");
         statement.setString(1, player);
         final ResultSet resultSet = statement.executeQuery();
         if (resultSet.next()) {
@@ -43,10 +43,10 @@ public class Discord2FAManager {
         return null;
     }
     private void setThenSend(Player player, String code) {
-        this.checkCode.put(player.getUniqueId(),code);
+        this.checkCode.put(player.getUniqueId(), code);
         final String message = this.plugin.getConfig().getString("messages.discord-message")
                 .replace("%code%", this.getCheckCode().get(player.getUniqueId()));
-        final String memberId = this.getData(player.getName(),"verify."+ player.getName() + ".discord","discord","2fa",this.plugin.isMySQLEnabled());
+        final String memberId = this.getData(player.getName(), "verify." + player.getName() + ".discord", "discord", "2fa", this.plugin.isMySQLEnabled());
         if (memberId == null) {
             this.plugin.getLogger().warning("We're cannot get player's Discord ID?");
             return;
@@ -54,12 +54,19 @@ public class Discord2FAManager {
         if (this.leftRights.get(player.getUniqueId()) == null) {
             this.leftRights.put(player.getUniqueId(), this.plugin.getConfig().getInt("number-of-rights"));
         }
-        final User user = this.plugin.getBot().getUserById(memberId);
-        if (user != null) {
-            user.openPrivateChannel().complete().sendMessage((message)).queue();
-        } else {
-            this.plugin.getLogger().warning("Uh, we're cannot find user with id "+memberId+"");
-        }
+     /*   final AtomicBoolean isSent = new AtomicBoolean(false);
+        this.plugin.getBot().getGuilds()
+                .stream()
+                .filter(guild -> guild.getMemberById(memberId) != null && !isSent.get())
+                .forEach(guild -> {
+                    final Member user = guild.getMemberById(memberId);
+                    assert user != null;
+                    user.getUser().openPrivateChannel().complete().sendMessage((message)).queue();
+                    isSent.set(true);
+                });
+
+      */
+        this.plugin.getLogManager().sendLog(Collections.singletonList(memberId), message);
     }
     public void addPlayerToCheck(Player player) {
         if (this.isInCheck(player))

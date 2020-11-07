@@ -10,7 +10,7 @@ import java.net.URLConnection;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.7
+ *	Currently version: 2.8
  */
 
 public class UpdateCheck {
@@ -37,8 +37,8 @@ public class UpdateCheck {
    @SneakyThrows
    private boolean isAvailable() {
        final URLConnection urlConnection = new URL(
-               "https://api.spigotmc.org/legacy/update.php?resource=75451")
-               .openConnection();
+               "https://api.spigotmc.org/legacy/update.php?resource=75451"
+       ).openConnection();
        final String spigotPluginVersion = new BufferedReader(
                new InputStreamReader(
                        urlConnection.getInputStream())

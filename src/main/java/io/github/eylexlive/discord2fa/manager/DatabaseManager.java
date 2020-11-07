@@ -6,7 +6,7 @@ import io.github.eylexlive.discord2fa.database.YmlDatabase;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.7
+ *	Currently version: 2.8
  */
 
 public class DatabaseManager {

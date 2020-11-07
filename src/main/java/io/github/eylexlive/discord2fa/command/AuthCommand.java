@@ -8,11 +8,12 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.UUID;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.7
+ *	Currently version: 2.8
  */
 
 public class AuthCommand implements CommandExecutor {
@@ -45,6 +46,7 @@ public class AuthCommand implements CommandExecutor {
                 return true;
             }
             final UUID uuid = player.getUniqueId();
+            final List<String> adminIds = this.plugin.getConfig().getStringList("logs.admin-ids");
             if (!args[0].equalsIgnoreCase(this.plugin.getDiscord2FAManager().getCheckCode().get(uuid)) &&
                     !this.plugin.getDiscord2FAManager().isBackupCode(player,args[0])) {
                 if (this.plugin.getDiscord2FAManager().getLeftRights().get(uuid) > 1) {
@@ -54,7 +56,7 @@ public class AuthCommand implements CommandExecutor {
                     player.sendMessage(Color.translate(message));
                     if (!this.plugin.getConfig().getBoolean("logs.enabled"))
                         return true;
-                    this.plugin.getLogManager().sendLog(this.plugin.getConfig().getString("logs.player-entered-wrong-code").replace("%player%",player.getName()).replace("%left%",this.plugin.getDiscord2FAManager().getLeftRights().get(uuid)+""));
+                    this.plugin.getLogManager().sendLog(adminIds, this.plugin.getConfig().getString("logs.player-entered-wrong-code").replace("%player%",player.getName()).replace("%left%",this.plugin.getDiscord2FAManager().getLeftRights().get(uuid)+""));
                 } else {
                     this.plugin.getDiscord2FAManager().getLeftRights().put(uuid,Integer.parseInt(this.plugin.getConfig().getString("number-of-rights")));
                     String command = this.plugin.getConfig().getString("rights-reached-console-command");
@@ -62,7 +64,7 @@ public class AuthCommand implements CommandExecutor {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(),command);
                     if (!this.plugin.getConfig().getBoolean("logs.enabled"))
                         return true;
-                    this.plugin.getLogManager().sendLog(this.plugin.getConfig().getString("logs.player-reached-limit").replace("%player%",player.getName()));
+                    this.plugin.getLogManager().sendLog(adminIds, this.plugin.getConfig().getString("logs.player-reached-limit").replace("%player%",player.getName()));
                 }
                 return true;
             }
@@ -75,7 +77,7 @@ public class AuthCommand implements CommandExecutor {
             this.plugin.getSitManager().unSitPlayer(player);
             if (!this.plugin.getConfig().getBoolean("logs.enabled"))
                 return true;
-            this.plugin.getLogManager().sendLog(this.plugin.getConfig().getString("logs.player-authenticated")
+            this.plugin.getLogManager().sendLog(adminIds, this.plugin.getConfig().getString("logs.player-authenticated")
                     .replace("%player%",player.getName()));
         }
         return true;
