@@ -1,10 +1,13 @@
 package io.github.eylexlive.discord2fa.hook;
 
 import io.github.eylexlive.discord2fa.Main;
+import org.bukkit.plugin.PluginManager;
+
+import java.util.logging.Logger;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.8
+ *	Currently version: 2.9
  */
 
 public class PluginHook  {
@@ -19,14 +22,16 @@ public class PluginHook  {
     public void hook() {
         if (!this.enabled)
             return;
-        this.plugin.getLogger().info("Hooking into " + this.pluginName);
-        if (this.plugin.getServer().getPluginManager().getPlugin(this.pluginName) == null) {
-            this.plugin.getLogger().warning("ERROR: There was an error hooking into " + this.pluginName + "!");
+        final Logger logger = this.plugin.getLogger();
+        logger.info("Hooking into " + this.pluginName);
+        final PluginManager pluginManager = this.plugin.getServer().getPluginManager();
+        if (pluginManager.getPlugin(this.pluginName) == null) {
+            logger.warning("ERROR: There was an error hooking into " + this.pluginName + "!");
             return;
         }
         final HookListener hookListener = new HookListener(
                 "io.github.eylexlive.discord2fa.hook.hookevent." + this.pluginName + "Event");
-        this.plugin.getServer().getPluginManager().registerEvents(hookListener.getListener(), this.plugin);
-        this.plugin.getLogger().info("Hooked into " + this.pluginName);
+        pluginManager.registerEvents(hookListener.getListener(), this.plugin);
+        logger.info("Hooked into " + this.pluginName);
     }
 }

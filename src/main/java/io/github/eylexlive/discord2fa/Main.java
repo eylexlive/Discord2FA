@@ -17,16 +17,24 @@ import java.util.Arrays;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.8
+ *	Currently version: 2.9
  */
 
 public class Main extends JavaPlugin {
-    @Getter private static Main instance;
-    @Getter public MysqlDatabase mySQLDatabase;
-    @Getter public YmlDatabase yamlDatabase;
-    @Getter private Discord2FAManager discord2FAManager;
-    @Getter private SitManager sitManager;
-    @Getter private LogManager logManager;
+    @Getter
+    private static Main instance;
+    @Getter
+    public MysqlDatabase mySQLDatabase;
+    @Getter
+    public YmlDatabase yamlDatabase;
+    @Getter
+    private Discord2FAManager discord2FAManager;
+    @Getter
+    private SitManager sitManager;
+    @Getter
+    private LogManager logManager;
+    @Getter
+    private HookManager hookManager;
     @Override
     public void onEnable() {
         instance = this;
@@ -68,22 +76,13 @@ public class Main extends JavaPlugin {
     }
     private void registerManagers() {
         this.discord2FAManager = new Discord2FAManager(this);
-        this.sitManager = new SitManager();
         this.logManager = new LogManager(this);
+        this.hookManager = new HookManager(this);
+        this.sitManager = new SitManager();
     }
     private void registerCommands() {
         this.getCommand("auth").setExecutor(new AuthCommand(this));
         this.getCommand("discord2fa").setExecutor(new Discord2FACommand(this));
-    }
-    public boolean isAuthmeSupport() {
-        return (this.getServer().getPluginManager().getPlugin("AuthMe") != null ||
-                this.getServer().getPluginManager().getPlugin("AuthMeReloaded") != null) &&
-                !this.isLoginSecuritySupport() && this.getConfig().getBoolean("authme-support");
-    }
-    public boolean isLoginSecuritySupport() {
-        return (this.getServer().getPluginManager().getPlugin("LoginSecurity") != null) &&
-                !this.isAuthmeSupport() &&
-                this.getConfig().getBoolean("loginsecurity-support");
     }
     public boolean isMySQLEnabled() {
         return this.getConfig().getBoolean("mysql.enabled");
@@ -92,6 +91,6 @@ public class Main extends JavaPlugin {
         return this.getBot() != null;
     }
     public JDA getBot() {
-        return Bot.getInstance().getJda();
+        return Bot.getJda();
     }
 }

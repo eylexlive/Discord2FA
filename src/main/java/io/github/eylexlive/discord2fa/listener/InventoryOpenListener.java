@@ -8,7 +8,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.8
+ *	Currently version: 2.9
  */
 
 public class InventoryOpenListener implements Listener {
@@ -18,12 +18,11 @@ public class InventoryOpenListener implements Listener {
     }
     @EventHandler
     public void handleInvOpen(InventoryOpenEvent event) {
-        final String settingsPrefix = "canceled-events.";
-        if (!this.plugin.getConfig().getBoolean(settingsPrefix+"inventory-open.cancel"))
+        if (!this.plugin.getConfig().getBoolean("canceled-events.inventory-open.cancel"))
             return;
         final Player player = (Player) event.getPlayer();
         if (this.plugin.getDiscord2FAManager().isInCheck(player)) {
-            this.plugin.getConfig().getStringList(settingsPrefix + "inventory-open.whitelisted-inventory-types")
+            this.plugin.getConfig().getStringList("canceled-events.inventory-open.whitelisted-inventory-types")
                     .stream()
                     .filter(whitelistedType -> !event.getInventory().getType().name().equalsIgnoreCase(whitelistedType))
                     .forEach(whitelistedType -> event.setCancelled(true));

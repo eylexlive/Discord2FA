@@ -1,8 +1,8 @@
 name: Discord2FA
 author: EylexLive
-version: 2.8
+version: 2.9
 main: io.github.eylexlive.discord2fa.Main
-softdepend: [AuthMe, AuthMeReloaded, LoginSecurity]
+softdepend: [AuthMe, LoginSecurity]
 
 commands:
   auth:

@@ -10,16 +10,15 @@ import javax.security.auth.login.LoginException;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.8
+ *	Currently version: 2.9
  */
 
 public class Bot {
     private final Main plugin;
     private final String token;
-    @Getter private static Bot instance;
-    @Getter public JDA jda = null;
+    @Getter
+    public static JDA jda = null;
     public Bot(String token, Main plugin) {
-        instance = this;
         this.token = token;
         this.plugin = plugin;
     }
@@ -29,12 +28,12 @@ public class Bot {
                 this.plugin.getLogger().warning("Please put your bot's token in config.");
                 return;
             }
-            this.jda = new JDABuilder(AccountType.BOT)
+            jda = new JDABuilder(AccountType.BOT)
                     .setToken(this.token)
                     .build();
-        } catch (LoginException e) {
+        } catch (LoginException loginException) {
             this.plugin.getLogger().severe("Bot failed to connect..!");
-            this.plugin.getLogger().severe("Error cause: " + e.getLocalizedMessage());
+            this.plugin.getLogger().severe("Error cause: " + loginException.getLocalizedMessage());
         }
     }
 }

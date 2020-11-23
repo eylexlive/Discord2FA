@@ -1,18 +1,20 @@
 package io.github.eylexlive.discord2fa.command;
 
 import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.manager.Discord2FAManager;
 import io.github.eylexlive.discord2fa.util.Color;
-import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.8
+ *	Currently version: 2.9
  */
 
 public class Discord2FACommand implements CommandExecutor {
@@ -30,20 +32,20 @@ public class Discord2FACommand implements CommandExecutor {
         };
     }
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String s, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String s, @NotNull String[] args) {
         if (!sender.hasPermission("discord2fa.admin")) {
-            sender.sendMessage(mainMessage);
+            sender.sendMessage(this.mainMessage);
             return true;
         }
         final String player, discord;
-        final String prefix = "messages.discord2fa-command.";
+        final Discord2FAManager discord2FAManager = this.plugin.getDiscord2FAManager();
         switch (args.length) {
             case 0:
-                sender.sendMessage(mainMessage);
+                sender.sendMessage(this.mainMessage);
                 sender.sendMessage(
                         "§fBot status: §"+ (this.plugin.getConnectStatus() ? "aConnected." : "cConnect failed!")
                 );
-                String helpMessage = this.plugin.getConfig().getString(prefix + "help-message");
+                String helpMessage = this.plugin.getConfig().getString("messages.discord2fa-command.help-message");
                 helpMessage = Color.translate(helpMessage);
                 sender.sendMessage(helpMessage.split("%nl%"));
                 break;
@@ -53,53 +55,58 @@ public class Discord2FACommand implements CommandExecutor {
                         sender.sendMessage("§cThis mode is turned off while mysql is enabled right now.");
                         return true;
                     }
-                    final StringBuilder builder = new StringBuilder();
+                    final StringBuilder stringBuilder = new StringBuilder();
                     this.plugin.getYamlDatabase().getDatabaseConfiguration()
                             .getConfigurationSection("verify")
                             .getKeys(false)
                             .forEach(key -> {
-                                if(builder.length() > 0)
-                                    builder.append(", ");
-                                builder.append(key + "/" + this.plugin.getYamlDatabase().getDatabaseConfiguration().getString("verify."+ key +".discord"));
+                                if(stringBuilder.length() > 0)
+                                    stringBuilder.append(", ");
+                                stringBuilder.append(key + "/" + this.plugin.getYamlDatabase().getDatabaseConfiguration().getString("verify."+ key +".discord"));
                     });
-                    String verifyListMessage = this.plugin.getConfig().getString(prefix + "verifyList-message");
+                    String verifyListMessage = this.plugin.getConfig().getString("messages.discord2fa-command.verifyList-message");
                     verifyListMessage = Color.translate(verifyListMessage)
-                            .replace("%list%", builder.toString());
+                            .replace("%list%", stringBuilder.toString());
                     sender.sendMessage(verifyListMessage.split("%nl%"));
                 } else if (args[0].equalsIgnoreCase("reloadconfig")) {
                     this.plugin.reloadConfig();
-                    sender.sendMessage(Color.translate(this.plugin.getConfig().getString(prefix + "reload-success")));
+                    sender.sendMessage(Color.translate(this.plugin.getConfig().getString("messages.discord2fa-command.reload-success")));
                 }
                 break;
             case 2:
                 player = args[1];
                 if (args[0].equalsIgnoreCase("removefromcheck")) {
-                    if (Bukkit.getPlayer(player) == null)
+                    final Server server = this.plugin.getServer();
+                    if (server.getPlayer(player) == null)
                         return true;
-                    final Player serverPlayer = Bukkit.getPlayer(player);
-                    this.plugin.getDiscord2FAManager().removePlayerFromCheck(serverPlayer);
+                    final Player serverPlayer = server.getPlayer(player);
+                    discord2FAManager.removePlayerFromCheck(serverPlayer);
                     this.plugin.getSitManager().unSitPlayer(serverPlayer);
                 } else if (args[0].equalsIgnoreCase("generatebackupcodes")) {
-                    final List<String> codes = this.plugin.getDiscord2FAManager().generateBackupCodes(player);
-                    String message = this.plugin.getConfig().getString(prefix + "backup-codes-generated");
-                    message = message.replace("%player%",player);
-                    message = message.replace("%codes%",codes.toString());
+                    final List<String> codes = discord2FAManager.generateBackupCodes(player);
+                    String message = this.plugin.getConfig().getString("messages.discord2fa-command.backup-codes-generated");
+                    message = message.replace("%player%", player);
+                    message = message.replace("%codes%", codes.toString());
                     sender.sendMessage(Color.translate(message));
                 }
                 break;
             case 3:
                 player = args[1]; discord = args[2];
                 if (args[0].equalsIgnoreCase("addtoverifylist")) {
-                    this.plugin.getDiscord2FAManager().addPlayerToVerifyList(player, discord);
-                    String message = this.plugin.getConfig().getString(prefix + "added-to-verifyList-message");
-                    message = message.replace("%player%",player);
-                    message = message.replace("%id%",discord);
+                    if (discord.length() != 18) {
+                        sender.sendMessage(Color.translate(this.plugin.getConfig().getString("messages.discord2fa-command.invalid-discord-id")));
+                        return true;
+                    }
+                    discord2FAManager.addPlayerToVerifyList(player, discord);
+                    String message = this.plugin.getConfig().getString("messages.discord2fa-command.added-to-verifyList-message");
+                    message = message.replace("%player%", player);
+                    message = message.replace("%id%", discord);
                     sender.sendMessage(Color.translate(message));
                 } else if (args[0].equalsIgnoreCase("removefromverifylist")) {
-                    this.plugin.getDiscord2FAManager().removePlayerFromVerifyList(player);
-                    String message = this.plugin.getConfig().getString(prefix + "removed-from-verifyList-message");
-                    message = message.replace("%player%",player);
-                    message = message.replace("%id%",discord);
+                    discord2FAManager.removePlayerFromVerifyList(player);
+                    String message = this.plugin.getConfig().getString("messages.discord2fa-command.removed-from-verifyList-message");
+                    message = message.replace("%player%", player);
+                    message = message.replace("%id%", discord);
                     sender.sendMessage(Color.translate(message));
                 }
                 break;

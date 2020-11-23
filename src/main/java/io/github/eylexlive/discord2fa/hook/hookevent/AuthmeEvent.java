@@ -2,6 +2,7 @@ package io.github.eylexlive.discord2fa.hook.hookevent;
 
 import fr.xephi.authme.events.LoginEvent;
 import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.hook.HookName;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -9,7 +10,7 @@ import org.bukkit.event.Listener;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.8
+ *	Currently version: 2.9
  */
 
 @Deprecated
@@ -18,10 +19,10 @@ public class AuthmeEvent implements Listener {
     public AuthmeEvent() {
         this.plugin = Main.getInstance();
     }
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler
     public void handleAuthMeLogin(LoginEvent event) {
         final Player player = event.getPlayer();
-        if (this.plugin.isAuthmeSupport())  {
+        if (this.plugin.getHookManager().isPluginSupport(HookName.AuthMe))  {
             this.plugin.getDiscord2FAManager().checkPlayer(player);
         }
     }

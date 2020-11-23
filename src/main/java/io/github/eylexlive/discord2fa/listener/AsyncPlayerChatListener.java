@@ -10,7 +10,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.8
+ *	Currently version: 2.9
  */
 
 public class AsyncPlayerChatListener implements Listener {
@@ -20,14 +20,13 @@ public class AsyncPlayerChatListener implements Listener {
     }
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void handleChat(AsyncPlayerChatEvent event) {
-        final String settingsPrefix = "canceled-events.";
-        if (!this.plugin.getConfig().getBoolean(settingsPrefix+"chat-use.cancel"))
+        if (!this.plugin.getConfig().getBoolean("canceled-events.chat-use.cancel"))
             return;
         final Player player= event.getPlayer();
         if (this.plugin.getDiscord2FAManager().isInCheck(player)) {
-            this.plugin.getConfig().getStringList(settingsPrefix + "chat-use.whitelisted-words")
+            this.plugin.getConfig().getStringList( "canceled-events.chat-use.whitelisted-words")
                     .stream()
-                    .filter(whitelistedWord -> !event.getMessage().toLowerCase().contains(whitelistedWord.toLowerCase()))
+                    .filter(whitelistedWord -> !event.getMessage().equalsIgnoreCase(whitelistedWord))
                     .forEach(whitelistedWord -> {
                         event.setCancelled(true);
                         player.sendMessage(Color.translate(this.plugin.getConfig().getString("messages.event-messages.chat-use-message")));

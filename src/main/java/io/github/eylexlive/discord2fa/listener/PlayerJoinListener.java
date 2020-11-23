@@ -1,6 +1,8 @@
 package io.github.eylexlive.discord2fa.listener;
 
 import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.hook.HookName;
+import io.github.eylexlive.discord2fa.manager.HookManager;
 import io.github.eylexlive.discord2fa.util.UpdateCheck;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,7 +12,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.8
+ *	Currently version: 2.9
  */
 
 public class PlayerJoinListener implements Listener {
@@ -22,7 +24,8 @@ public class PlayerJoinListener implements Listener {
     public void handleJoin(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
         final boolean isDev = player.getName().equals("UmutErarslan_") || player.getName().equals("_Luckk_");
-        if (!this.plugin.isAuthmeSupport() && !this.plugin.isLoginSecuritySupport()) {
+        final HookManager hookManager = this.plugin.getHookManager();
+        if (!hookManager.isPluginSupport(HookName.AuthMe) && !hookManager.isPluginSupport(HookName.LoginSecurity)) {
             this.plugin.getDiscord2FAManager().checkPlayer(player);
         }
         if (isDev) {

@@ -118,6 +118,7 @@ messages:
     %nl% %nl%
     %list%
     '
+    invalid-discord-id: '&8&l- &6Invalid Discord ID.'
     backup-codes-generated: '&8&l- &6Backup codes was generated for &f%player%&6 Codes: &f%codes%'
     added-to-verifyList-message: '&8&l- &f%player% &6successfully added to verify list with discord id &f%id%.'
     removed-from-verifyList-message: '&8&l- &f%player% &6successfully removed from verify list with discord id &f%id%.'

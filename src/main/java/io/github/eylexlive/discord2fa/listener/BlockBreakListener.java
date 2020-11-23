@@ -9,7 +9,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.8
+ *	Currently version: 2.9
  */
 
 public class BlockBreakListener implements Listener {
@@ -19,12 +19,11 @@ public class BlockBreakListener implements Listener {
     }
     @EventHandler
     public void handleBlockBreak(BlockBreakEvent event) {
-        final String settingsPrefix = "canceled-events.";
-        if (!this.plugin.getConfig().getBoolean(settingsPrefix+"block-break.cancel"))
+        if (!this.plugin.getConfig().getBoolean("canceled-events.block-break.cancel"))
             return;
         final Player player= event.getPlayer();
         if (this.plugin.getDiscord2FAManager().isInCheck(player)) {
-            this.plugin.getConfig().getStringList(settingsPrefix+"block-break.whitelisted-blocks")
+            this.plugin.getConfig().getStringList("canceled-events.block-break.whitelisted-blocks")
                     .stream()
                     .filter(whitelistedBlock -> !event.getBlock().getType().name().equalsIgnoreCase(whitelistedBlock))
                     .forEach(whitelistedBlock -> {
