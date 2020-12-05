@@ -17,20 +17,14 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.zip.GZIPOutputStream;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.9
+ *	Currently version: 3.0
  */
 
 public class Metrics {
@@ -228,7 +222,6 @@ public class Metrics {
         JSONObject data = new JSONObject();
 
         data.put("serverUUID", serverUUID);
-
         data.put("playerAmount", playerAmount);
         data.put("onlineMode", onlineMode);
         data.put("bukkitVersion", bukkitVersion);

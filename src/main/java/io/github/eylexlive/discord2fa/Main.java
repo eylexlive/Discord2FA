@@ -2,62 +2,67 @@ package io.github.eylexlive.discord2fa;
 
 import io.github.eylexlive.discord2fa.bot.Bot;
 import io.github.eylexlive.discord2fa.command.*;
-import io.github.eylexlive.discord2fa.database.*;
+import io.github.eylexlive.discord2fa.file.Config;
 import io.github.eylexlive.discord2fa.listener.*;
 import io.github.eylexlive.discord2fa.manager.*;
+import io.github.eylexlive.discord2fa.provider.MySQLProvider;
+import io.github.eylexlive.discord2fa.provider.Provider;
+import io.github.eylexlive.discord2fa.provider.YamlProvider;
 import io.github.eylexlive.discord2fa.util.Metrics;
 import io.github.eylexlive.discord2fa.util.UpdateCheck;
-import lombok.Getter;
-import net.dv8tion.jda.api.JDA;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.9
+ *	Currently version: 3.0
  */
 
+
 public class Main extends JavaPlugin {
-    @Getter
+
     private static Main instance;
-    @Getter
-    public MysqlDatabase mySQLDatabase;
-    @Getter
-    public YmlDatabase yamlDatabase;
-    @Getter
+
     private Discord2FAManager discord2FAManager;
-    @Getter
-    private SitManager sitManager;
-    @Getter
-    private LogManager logManager;
-    @Getter
     private HookManager hookManager;
+
+    private Config config;
+
+    private Provider provider;
+
     @Override
     public void onEnable() {
+        if (instance != null)
+            throw new IllegalStateException("Discord2FA already enabled!");
         instance = this;
-        this.getConfig().options().copyDefaults(true);
-        this.saveConfig();
-        this.registerManagers();
-        this.registerCommands();
-        this.registerListeners();
+        config = new Config("config");
+        provider = (isMySQLEnabled() ? new MySQLProvider() : new YamlProvider());
+        provider.setupDatabase();
+        discord2FAManager = new Discord2FAManager(this);
+        hookManager = new HookManager(this);
+        getCommand("auth").setExecutor(new AuthCommand(this));
+        getCommand("discord2fa").setExecutor(new Discord2FACommand(this));
+        registerListeners();
         new Metrics(this);
-        new HookManager(this).hook();
-        new DatabaseManager(this).setup();
-        new UpdateCheck(this).checkUpdate();
-        new Bot(this.getConfig().getString("bot-token"), this).login();
+        CompletableFuture.runAsync(() -> {
+            new UpdateCheck(this).checkUpdate();
+            new Bot(config.getString("bot-token"), this).login();
+        });
     }
+
     @Override
     public void onDisable() {
-        this.sitManager.getArmorStands().values().forEach(Entity::remove);
-        if (!this.isMySQLEnabled()) {
-            this.yamlDatabase.saveDatabaseConfiguration();
-        }
+        discord2FAManager.getArmorStands().values().forEach(Entity::remove);
+        provider.saveDatabase();
     }
+
     private void registerListeners() {
-        final PluginManager pluginManager = this.getServer().getPluginManager();
+        final PluginManager pluginManager = getServer().getPluginManager();
         Arrays.asList(
                 new AsyncPlayerChatListener(this),
                 new BlockBreakListener(this),
@@ -70,27 +75,36 @@ public class Main extends JavaPlugin {
                 new PlayerInteractListener(this),
                 new PlayerJoinListener(this),
                 new EntityDismountListener(this),
-                new PlayerQuitListener(this))
-                .forEach(listener -> pluginManager.registerEvents(listener, this)
-        );
+                new PlayerQuitListener(this)
+        ).forEach(listener -> pluginManager.registerEvents(listener, this));
     }
-    private void registerManagers() {
-        this.discord2FAManager = new Discord2FAManager(this);
-        this.logManager = new LogManager(this);
-        this.hookManager = new HookManager(this);
-        this.sitManager = new SitManager();
+
+    public static @NotNull Main getInstance() {
+        return instance;
     }
-    private void registerCommands() {
-        this.getCommand("auth").setExecutor(new AuthCommand(this));
-        this.getCommand("discord2fa").setExecutor(new Discord2FACommand(this));
+
+    public @NotNull Config getConfig() {
+        return config;
     }
+
+    public @NotNull Provider getProvider() {
+        return provider;
+    }
+
+    public @NotNull Discord2FAManager getDiscord2FAManager() {
+        return discord2FAManager;
+    }
+
+    public @NotNull HookManager getHookManager() {
+        return hookManager;
+    }
+
     public boolean isMySQLEnabled() {
-        return this.getConfig().getBoolean("mysql.enabled");
+        return config.getBoolean("mysql.enabled");
     }
+
     public boolean getConnectStatus() {
-        return this.getBot() != null;
+        return Bot.jda != null;
     }
-    public JDA getBot() {
-        return Bot.getJda();
-    }
+
 }

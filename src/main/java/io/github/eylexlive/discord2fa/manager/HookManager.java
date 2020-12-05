@@ -1,32 +1,33 @@
 package io.github.eylexlive.discord2fa.manager;
 
 import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.hook.HookName;
+import io.github.eylexlive.discord2fa.hook.HookType;
 import io.github.eylexlive.discord2fa.hook.PluginHook;
 
 import java.util.Arrays;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 2.9
+ *	Currently version: 3.0
  */
 
 public class HookManager {
+
     private final Main plugin;
+
     public HookManager(Main plugin) {
         this.plugin = plugin;
-    }
-    public void hook() {
         Arrays.asList("Authme", "LoginSecurity").forEach(hookPl ->  {
             final PluginHook pluginHook = new PluginHook(
-                    hookPl, this.plugin, this.plugin.getConfig().getBoolean(hookPl.toLowerCase() + "-support")
+                    hookPl, plugin, plugin.getConfig().getBoolean(hookPl.toLowerCase() + "-support")
             );
-            pluginHook.hook();
+            pluginHook.execute();
         });
     }
-    public boolean isPluginSupport(HookName pluginName) {
+
+    public boolean isPluginSupport(HookType pluginName) {
         final String name = pluginName.name().toLowerCase();
-        return (this.plugin.getServer().getPluginManager().getPlugin(name) != null) &&
-                this.plugin.getConfig().getBoolean(name + "-support");
+        return (plugin.getServer().getPluginManager().getPlugin(name) != null) &&
+                plugin.getConfig().getBoolean(name + "-support");
     }
 }
