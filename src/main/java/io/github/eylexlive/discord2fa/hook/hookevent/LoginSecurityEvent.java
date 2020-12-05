@@ -25,8 +25,8 @@ public class LoginSecurityEvent implements Listener {
     @EventHandler
     public void handleLoginSecurityLogin(AuthActionEvent event) {
         final Player player = event.getPlayer();
-        if(event.getType() == AuthActionType.LOGIN && this.plugin.getHookManager().isPluginSupport(HookType.LoginSecurity)) {
-            this.plugin.getDiscord2FAManager().checkPlayer(player);
+        if(event.getType() == AuthActionType.LOGIN && plugin.getHookManager().isPluginSupport(HookType.LoginSecurity)) {
+            plugin.getDiscord2FAManager().checkPlayer(player);
         }
     }
 }
