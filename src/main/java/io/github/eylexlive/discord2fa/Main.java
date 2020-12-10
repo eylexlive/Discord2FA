@@ -20,9 +20,8 @@ import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.0
+ *	Currently version: 3.1
  */
-
 
 public class Main extends JavaPlugin {
 
@@ -31,8 +30,6 @@ public class Main extends JavaPlugin {
     private Discord2FAManager discord2FAManager;
     private HookManager hookManager;
 
-    private Config config;
-
     private Provider provider;
 
     @Override
@@ -40,25 +37,31 @@ public class Main extends JavaPlugin {
         if (instance != null)
             throw new IllegalStateException("Discord2FA already enabled!");
         instance = this;
-        config = new Config("config");
+
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+
+        getCommand("auth").setExecutor(new AuthCommand(this));
+        getCommand("discord2fa").setExecutor(new Discord2FACommand(this));
+
         provider = (isMySQLEnabled() ? new MySQLProvider() : new YamlProvider());
         provider.setupDatabase();
         discord2FAManager = new Discord2FAManager(this);
         hookManager = new HookManager(this);
-        getCommand("auth").setExecutor(new AuthCommand(this));
-        getCommand("discord2fa").setExecutor(new Discord2FACommand(this));
+
         registerListeners();
         new Metrics(this);
         CompletableFuture.runAsync(() -> {
             new UpdateCheck(this).checkUpdate();
-            new Bot(config.getString("bot-token"), this).login();
+            new Bot(getConfig().getString("bot-token"), this).login();
         });
     }
 
     @Override
     public void onDisable() {
         discord2FAManager.getArmorStands().values().forEach(Entity::remove);
-        provider.saveDatabase();
+        if (provider != null)
+            provider.saveDatabase();
     }
 
     private void registerListeners() {
@@ -83,10 +86,6 @@ public class Main extends JavaPlugin {
         return instance;
     }
 
-    public @NotNull Config getConfig() {
-        return config;
-    }
-
     public @NotNull Provider getProvider() {
         return provider;
     }
@@ -100,11 +99,10 @@ public class Main extends JavaPlugin {
     }
 
     public boolean isMySQLEnabled() {
-        return config.getBoolean("mysql.enabled");
+        return getConfig().getBoolean("mysql.enabled");
     }
 
     public boolean getConnectStatus() {
         return Bot.jda != null;
     }
-
 }

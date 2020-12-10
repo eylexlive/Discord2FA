@@ -17,7 +17,7 @@ import java.util.*;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.0
+ *	Currently version: 3.1
  */
 
 public class Discord2FAManager {
@@ -53,7 +53,7 @@ public class Discord2FAManager {
         if (isInCheck(player))
             return;
         checkPlayers.add(player);
-        final String code = RandomStringUtils.randomNumeric(plugin.getConfig().getInt("code-lenght"));
+        final String code = getRandomCode(plugin.getConfig().getInt("code-lenght"));
         if (!plugin.getConfig().getBoolean("generate-new-code-always")) {
             if (checkCode.get(player.getUniqueId()) == null) setThenSend(player, code);
         } else {
@@ -138,6 +138,24 @@ public class Discord2FAManager {
         return authMessage.split("%nl%");
     }
 
+    public String getRandomCode(int count) {
+        final CodeType codeType;
+        try {
+            codeType = CodeType.valueOf(plugin.getConfig().getString("code-type"));
+        } catch (IllegalArgumentException e) {
+            return "Invalid code type. **Please check it in config.yml** (Write it in upper case)";
+        }
+        switch (codeType) {
+            case NUMERIC:
+                return RandomStringUtils.randomNumeric(count);
+            case ALPHANUMERIC:
+                return RandomStringUtils.randomAlphanumeric(count);
+            case ALPHABETIC:
+                return RandomStringUtils.randomAlphabetic(count);
+        }
+        return null;
+    }
+
     public void sendLog(List<String> stringList, String path) {
         stringList.forEach(id ->  {
             final User user = Bot.jda.getUserById(id);
@@ -179,5 +197,11 @@ public class Discord2FAManager {
 
     public Map<Player, ArmorStand> getArmorStands() {
         return armorStands;
+    }
+
+    private enum CodeType {
+        NUMERIC,
+        ALPHANUMERIC,
+        ALPHABETIC
     }
 }

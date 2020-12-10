@@ -15,6 +15,7 @@ check-for-updates: true
 generate-new-code-always: true
 auto-verification: true
 code-lenght: 6
+code-type: NUMERIC
 authme-support: true
 loginsecurity-support: false
 

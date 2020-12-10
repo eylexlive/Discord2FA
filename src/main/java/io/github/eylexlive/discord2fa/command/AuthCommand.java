@@ -14,7 +14,7 @@ import java.util.UUID;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.0
+ *	Currently version: 3.1
  */
 
 public class AuthCommand implements CommandExecutor {
@@ -24,6 +24,7 @@ public class AuthCommand implements CommandExecutor {
     public AuthCommand(Main plugin) {
         this.plugin = plugin;
     }
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String s, @NotNull String[] args) {
         if (!(sender instanceof Player))
@@ -36,7 +37,7 @@ public class AuthCommand implements CommandExecutor {
             player.sendMessage("§cYou cannot do this yet...");
             return true;
         }
-        else if (!discord2FAManager.isInCheck(player)) {
+        if (!discord2FAManager.isInCheck(player)) {
             player.sendMessage(Color.translate(plugin.getConfig().getString("messages.auth-command.already-verified-message")));
             return true;
         }

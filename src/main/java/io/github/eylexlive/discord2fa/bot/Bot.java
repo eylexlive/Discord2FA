@@ -9,7 +9,7 @@ import javax.security.auth.login.LoginException;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.0
+ *	Currently version: 3.1
  */
 
 public class Bot {
@@ -33,6 +33,7 @@ public class Bot {
             }
             jda = new JDABuilder(AccountType.BOT)
                     .setToken(token)
+                    .setAutoReconnect(true)
                     .build();
         } catch (LoginException loginException) {
             plugin.getLogger().severe("Bot failed to connect..!");

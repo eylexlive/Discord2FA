@@ -14,7 +14,7 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.0
+ *	Currently version: 3.1
  */
 
 public class Discord2FACommand implements CommandExecutor {
@@ -66,7 +66,7 @@ public class Discord2FACommand implements CommandExecutor {
                 sender.sendMessage(verifyListMessage.split("%nl%"));
             }
             else if (args[0].equalsIgnoreCase("reloadconfig")) {
-                plugin.getConfig().reload();
+                plugin.reloadConfig();
                 sender.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.reload-success")));
             }
         }

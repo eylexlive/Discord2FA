@@ -8,7 +8,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.0
+ *	Currently version: 3.1
  */
 
 public class PlayerInteractListener implements Listener {

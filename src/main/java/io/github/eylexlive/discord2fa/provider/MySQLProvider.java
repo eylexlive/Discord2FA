@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.0
+ *	Currently version: 3.1
  */
 
 public class MySQLProvider extends Provider {
@@ -79,6 +79,8 @@ public class MySQLProvider extends Provider {
 
     @Override
     public void addToVerifyList(Player player, String discord) {
+        if (playerExits(player))
+            return;
         PreparedStatement statement;
         try {
             statement = getConnection().prepareStatement(
@@ -100,6 +102,8 @@ public class MySQLProvider extends Provider {
 
     @Override
     public void removeFromVerifyList(Player player) {
+        if (!playerExits(player))
+            return;
         try {
             final PreparedStatement statement = getConnection().prepareStatement(
                     "DELETE FROM " + "`2fa`" + " WHERE player= '" + player.getName() + "';");
@@ -137,7 +141,7 @@ public class MySQLProvider extends Provider {
     public List<String> generateBackupCodes(Player player) {
         final StringBuilder codes = new StringBuilder();
         for (int i = 1; i <= 5; i++) {
-            codes.append(RandomStringUtils.randomNumeric(
+            codes.append(plugin.getDiscord2FAManager().getRandomCode(
                     plugin.getConfig().getInt("code-lenght"))
             ).append("-");
         }

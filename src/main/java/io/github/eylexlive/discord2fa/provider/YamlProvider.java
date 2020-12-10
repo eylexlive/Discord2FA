@@ -13,7 +13,7 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.0
+ *	Currently version: 3.1
  */
 
 public class YamlProvider extends Provider {
@@ -69,7 +69,7 @@ public class YamlProvider extends Provider {
     public List<String> generateBackupCodes(Player player) {
         final StringBuilder codes = new StringBuilder();
         for (int i = 1; i <= 5; i++) {
-            codes.append(RandomStringUtils.randomNumeric(
+            codes.append(plugin.getDiscord2FAManager().getRandomCode(
                     plugin.getConfig().getInt("code-lenght"))
             ).append("-");
         }
