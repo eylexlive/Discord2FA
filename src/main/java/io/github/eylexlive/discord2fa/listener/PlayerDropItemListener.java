@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class PlayerDropItemListener implements Listener {
@@ -27,13 +27,10 @@ public class PlayerDropItemListener implements Listener {
             return;
         final Player player= event.getPlayer();
         if (plugin.getDiscord2FAManager().isInCheck(player)) {
-            plugin.getConfig().getStringList("canceled-events.item-drop.whitelisted-materials")
-                    .stream()
-                    .filter(whitelistedMaterial -> event.getItemDrop().getItemStack().getType().getId() != Material.getMaterial(whitelistedMaterial).getId())
-                    .forEach(whitelistedMaterial -> {
-                        event.setCancelled(true);
-                        player.sendMessage(Color.translate(plugin.getConfig().getString("messages.event-messages.item-drop-message")));
-                    });
+            final boolean cancelled = !plugin.getConfig().getStringList("canceled-events.item-drop.whitelisted-materials")
+                    .contains(event.getItemDrop().getItemStack().getType().name());
+            event.setCancelled(cancelled);
+            if (cancelled) player.sendMessage(Color.translate(plugin.getConfig().getString("messages.event-messages.item-drop-message")));
         }
     }
 }

@@ -14,12 +14,13 @@ import java.util.logging.Logger;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class MySQLProvider extends Provider {
 
     private final Main plugin = Main.getInstance();
+
     private Connection connection;
 
     private String getData(Player player, String sqlPath, String sqlTable) {

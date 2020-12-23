@@ -8,7 +8,7 @@ import java.io.IOException;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class Config extends YamlConfiguration {

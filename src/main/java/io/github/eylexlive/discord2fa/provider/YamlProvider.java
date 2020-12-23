@@ -13,12 +13,13 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class YamlProvider extends Provider {
 
     private final Main plugin = Main.getInstance();
+
     private Config yaml;
 
     private String getData(String ymlPath) {
@@ -46,7 +47,7 @@ public class YamlProvider extends Provider {
     public void removeFromVerifyList(Player player) {
         if (!playerExits(player))
             return;
-        yaml.set("verify." + player.getName() + ".discord", null);
+        yaml.set("verify." + player.getName(), null);
     }
 
     @Override
@@ -123,6 +124,8 @@ public class YamlProvider extends Provider {
     @Override
     public String getListMessage() {
         final StringBuilder stringBuilder = new StringBuilder();
+        if (yaml.getConfigurationSection("verify") == null)
+            return "Verify list empty.";
         yaml.getConfigurationSection("verify")
                 .getKeys(false)
                 .forEach(key -> {

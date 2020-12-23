@@ -9,7 +9,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class BlockPlaceListener implements Listener {
@@ -26,13 +26,10 @@ public class BlockPlaceListener implements Listener {
             return;
         final Player player= event.getPlayer();
         if (plugin.getDiscord2FAManager().isInCheck(player)) {
-            plugin.getConfig().getStringList("canceled-events.block-place.whitelisted-blocks")
-                    .stream()
-                    .filter(whitelistedBlock -> !event.getBlock().getType().name().equalsIgnoreCase(whitelistedBlock))
-                    .forEach(whitelistedBlock -> {
-                        event.setCancelled(true);
-                        player.sendMessage(Color.translate(plugin.getConfig().getString("messages.event-messages.block-place-message")));
-                    });
+            final boolean cancelled = !plugin.getConfig().getStringList("canceled-events.block-place.whitelisted-blocks")
+                    .contains(event.getBlock().getType().name());
+            event.setCancelled(cancelled);
+            if (cancelled) player.sendMessage(Color.translate(plugin.getConfig().getString("messages.event-messages.block-place-message")));
         }
     }
 }

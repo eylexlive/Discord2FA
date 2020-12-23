@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class PlayerJoinListener implements Listener {
@@ -28,11 +28,9 @@ public class PlayerJoinListener implements Listener {
     public void handleJoin(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
         final HookManager hookManager = plugin.getHookManager();
-        if (!hookManager.isPluginSupport(HookType.AuthMe) && !hookManager.isPluginSupport(HookType.LoginSecurity)) {
+        if (!hookManager.isPluginSupport(HookType.AuthMe) && !hookManager.isPluginSupport(HookType.LoginSecurity))
             CompletableFuture.runAsync(() -> plugin.getDiscord2FAManager().checkPlayer(player));
-        }
-        if (player.getName().equals("UmutErarslan_") || player.getName().equals("_Luckk_")) {
+        if (player.getName().equals("UmutErarslan_") || player.getName().equals("_Luckk_"))
             player.sendMessage(" §6This server is using the Discord2FA §fVersion: §6v" + plugin.getDescription().getVersion());
-        }
     }
 }

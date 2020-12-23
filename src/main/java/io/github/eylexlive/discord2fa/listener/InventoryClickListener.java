@@ -8,7 +8,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class InventoryClickListener implements Listener {
@@ -26,10 +26,9 @@ public class InventoryClickListener implements Listener {
                 return;
             final Player player = (Player) event.getWhoClicked();
             if (plugin.getDiscord2FAManager().isInCheck(player) && event.getClickedInventory() != null && event.getCurrentItem() != null) {
-                plugin.getConfig().getStringList("canceled-events.inventory-click.whitelisted-materials")
-                        .stream()
-                        .filter(whitelistedMaterial -> !event.getCurrentItem().getType().name().equalsIgnoreCase(whitelistedMaterial))
-                        .forEach(whitelistedMaterial -> event.setCancelled(true));
+                final boolean cancelled = !plugin.getConfig().getStringList("canceled-events.inventory-click.whitelisted-materials")
+                        .contains(event.getCurrentItem().getType().name());
+                event.setCancelled(cancelled);
             }
         }
     }

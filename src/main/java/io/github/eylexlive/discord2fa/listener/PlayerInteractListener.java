@@ -8,7 +8,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class PlayerInteractListener implements Listener {
@@ -25,9 +25,9 @@ public class PlayerInteractListener implements Listener {
             return;
         final Player player = event.getPlayer();
         if (plugin.getDiscord2FAManager().isInCheck(player)) {
-            plugin.getConfig().getStringList( "canceled-events.player-interact.whitelisted-actions")
-                    .stream().filter(whitelistedAction -> !event.getAction().name().equalsIgnoreCase(whitelistedAction))
-                    .forEach(whitelistedAction -> event.setCancelled(true));
+            final boolean cancelled = !plugin.getConfig().getStringList("canceled-events.player-interact.whitelisted-actions")
+                    .contains(event.getAction().name());
+            event.setCancelled(cancelled);
         }
     }
 }

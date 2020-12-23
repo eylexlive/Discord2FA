@@ -14,7 +14,7 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class Discord2FACommand implements CommandExecutor {
@@ -36,10 +36,6 @@ public class Discord2FACommand implements CommandExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String s, @NotNull String[] args) {
-        if (!sender.hasPermission("discord2fa.admin")) {
-            sender.sendMessage(mainMessage);
-            return true;
-        }
         final Discord2FAManager discord2FAManager = plugin.getDiscord2FAManager();
         final Provider provider = plugin.getProvider();
 
@@ -49,28 +45,57 @@ public class Discord2FACommand implements CommandExecutor {
             if (onlinePlayer == null)
                 return true;
         }
+
         if (args.length == 0) {
             sender.sendMessage(mainMessage);
-            sender.sendMessage(
-                    "§fBot status: §"+ (plugin.getConnectStatus() ? "aConnected." : "cConnect failed!")
-            );
-            String helpMessage = plugin.getConfig().getString("messages.discord2fa-command.help-message");
-            helpMessage = Color.translate(helpMessage);
-            sender.sendMessage(helpMessage.split("%nl%"));
+            if (sender.hasPermission("discord2fa.admin")) {
+                sender.sendMessage(
+                        "§fBot status: §"+ (plugin.getConnectStatus() ? "aConnected." : "cConnect failed!")
+                );
+                String helpMessage = plugin.getConfig().getString("messages.discord2fa-command.help-message");
+                helpMessage = Color.translate(helpMessage);
+                sender.sendMessage(helpMessage.split("%nl%"));
+            }
         }
         else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("verifylist")) {
+                if (!sender.hasPermission("discord2fa.admin")) {
+                    sender.sendMessage("§cYou do not have permission to use that command.");
+                    return true;
+                }
                 String verifyListMessage = plugin.getConfig().getString("messages.discord2fa-command.verifyList-message");
                 verifyListMessage = Color.translate(verifyListMessage)
                         .replace("%list%", provider.getListMessage());
                 sender.sendMessage(verifyListMessage.split("%nl%"));
             }
             else if (args[0].equalsIgnoreCase("reloadconfig")) {
+                if (!sender.hasPermission("discord2fa.admin")) {
+                    sender.sendMessage("§cYou do not have permission to use that command.");
+                    return true;
+                }
                 plugin.reloadConfig();
                 sender.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.reload-success")));
             }
+            else if (args[0].equalsIgnoreCase("enable")) {
+                if (!plugin.getConfig().getBoolean("authentication-for-players.enabled")) {
+                    sender.sendMessage("§cYou can do it when 2FA enabled for players.");
+                    return true;
+                }
+                discord2FAManager.sendEnabling2FARequest((Player) sender);
+            }
+            else if (args[0].equalsIgnoreCase("disable")) {
+                if (!plugin.getConfig().getBoolean("authentication-for-players.enabled")) {
+                    sender.sendMessage("§cYou can do it when 2FA enabled for players.");
+                    return true;
+                }
+                discord2FAManager.disable2FA((Player) sender);
+            }
         }
         else if (args.length == 2) {
+            if (!sender.hasPermission("discord2fa.admin")) {
+                sender.sendMessage("§cYou do not have permission to use that command.");
+                return true;
+            }
             if (args[0].equalsIgnoreCase("removefromcheck")) {
                 discord2FAManager.removePlayerFromCheck(onlinePlayer);
             }
@@ -83,6 +108,10 @@ public class Discord2FACommand implements CommandExecutor {
             }
         }
         else if (args.length == 3) {
+            if (!sender.hasPermission("discord2fa.admin")) {
+                sender.sendMessage("§cYou do not have permission to use that command.");
+                return true;
+            }
             final String discord = args[2];
             if (args[0].equalsIgnoreCase("addtoverifylist")) {
                 if (discord.length() != 18) {

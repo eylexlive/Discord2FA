@@ -8,16 +8,24 @@ mysql:
   use-ssl: true
 
 bot-token: Your token here.
+
 auth-countdown: 60
 number-of-rights: 5
 rights-reached-console-command: 'tempban %player% 20m 2FA Failed'
 check-for-updates: true
 generate-new-code-always: true
 auto-verification: true
+
 code-lenght: 6
 code-type: NUMERIC
+
 authme-support: true
 loginsecurity-support: false
+
+authentication-for-players:
+  enabled: false
+  confirm-your-account: '> Hey! `%player%` is trying to open 2FA! Is this you?%nl%> If you are this player please confirm yourself by pasting the code below into the chat.%nl%> Confirmation code: **%code%**'
+  successfully-confirmed: '> 2FA successfully enabled!'
 
 logs:
   enabled: true
@@ -26,6 +34,7 @@ logs:
   player-reached-limit: '> %player% reached the right limit!'
   admin-ids:
     - 324289979188510730
+
 canceled-events:
   command-use:
     cancel: true
@@ -64,7 +73,8 @@ messages:
   auto-verify-success-message: '&8&l- &6Automatic verification successful!'
   discord-message: 'Your auth code: %code%'
   kick-message: '&cYou are kicked from the server because &fauth countdown time &cis reached! &cLeft rights&8:&f %rights%'
-  auth-message: # Split messages with "%nl%"
+  msg-send-failed: '&8&l- &6Error while sending message to your Discord!'
+  auth-message:
     format-1: ' %nl%
     &8&l- &f&lHEY! &6You must be authenticated to connect!
     %nl% %nl%
@@ -79,7 +89,7 @@ messages:
     format-2: ' %nl%
     &8&l- &f&lHEY! &6You must be authenticated to connect!
      %nl% %nl%
-    &8&l- &6We are sent a code,please check your discord direct messages!.
+    &8&l- &6We are sent a code, please check your discord direct messages!.
     %nl%
     &8&l- &6If the code has not been sent,check your direct message settings and try again.
     %nl%
@@ -93,13 +103,17 @@ messages:
     invalid-code-message: '&8&l- &6Invalid code,Left rights:&f %rights%'
     auth-success-message: '&8&l- &6Successfully authenticated with your Discord account. Thanks for keeping your account secure.'
     backup-code-used: '&8&l- &6You have used a backup code!'
-  discord2fa-command: # Split messages with "%nl%"
+  discord2fa-command:
     help-message: '
     &8&m--------------------
     %nl%
     &6&lDiscord2FA&8&l -&f&l Help
     %nl% %nl%
     &6Commands:
+    %nl%
+    &f/discord2fa enable
+    %nl%
+    &f/discord2fa disable
     %nl%
     &f/discord2fa addToVerifyList <player> <discord id>
     %nl%
@@ -119,6 +133,14 @@ messages:
     %nl% %nl%
     %list%
     '
+    player-auth-enter-discord: '&8&l- &6Please enter your Discord in the following format: &fName#Discrimintator'
+    player-auth-confirm-code-sent: '&8&l- &6Please check your Discord direct messages! (direct messages must be enabled!)'
+    player-auth-timeout: '&8&l- &6Confirmation timeout.'
+    player-auth-discord-acc-not-found: '&8&l- &6We cannot find such a Discord user.'
+    player-auth-enabled: '&8&l- &62FA successfully enabled!'
+    player-auth-already-enabled: '&8&l- &62FA already enabled!'
+    player-auth-disabled: '&8&l- &62FA disabled!'
+    player-auth-already-disabled: '&8&l- &62FA already disabled!'
     invalid-discord-id: '&8&l- &6Invalid Discord ID.'
     backup-codes-generated: '&8&l- &6Backup codes was generated for &f%player%&6 Codes: &f%codes%'
     added-to-verifyList-message: '&8&l- &f%player% &6successfully added to verify list with discord id &f%id%.'

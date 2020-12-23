@@ -2,7 +2,6 @@ package io.github.eylexlive.discord2fa;
 
 import io.github.eylexlive.discord2fa.bot.Bot;
 import io.github.eylexlive.discord2fa.command.*;
-import io.github.eylexlive.discord2fa.file.Config;
 import io.github.eylexlive.discord2fa.listener.*;
 import io.github.eylexlive.discord2fa.manager.*;
 import io.github.eylexlive.discord2fa.provider.MySQLProvider;
@@ -20,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class Main extends JavaPlugin {
@@ -51,10 +50,8 @@ public class Main extends JavaPlugin {
 
         registerListeners();
         new Metrics(this);
-        CompletableFuture.runAsync(() -> {
-            new UpdateCheck(this).checkUpdate();
-            new Bot(getConfig().getString("bot-token"), this).login();
-        });
+        new UpdateCheck(this).checkUpdate();
+        CompletableFuture.runAsync(() -> new Bot(getConfig().getString("bot-token"), this).login());
     }
 
     @Override

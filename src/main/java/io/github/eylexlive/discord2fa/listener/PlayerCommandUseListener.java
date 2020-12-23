@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.1
+ *	Currently version: 3.2
  */
 
 public class PlayerCommandUseListener implements Listener {
@@ -28,13 +28,10 @@ public class PlayerCommandUseListener implements Listener {
         final Player player= event.getPlayer();
         if (plugin.getDiscord2FAManager().isInCheck(player)) {
             final String[] commandArguments = event.getMessage().split(" ");
-            plugin.getConfig().getStringList( "canceled-events.command-use.whitelisted-commands")
-                    .stream()
-                    .filter(whitelistedCommand -> !commandArguments[0].equalsIgnoreCase("/"+whitelistedCommand))
-                    .forEach(whitelistedCommand -> {
-                        event.setCancelled(true);
-                        player.sendMessage(Color.translate(plugin.getConfig().getString("messages.event-messages.command-use-message")));
-                    });
+            final boolean cancelled = !plugin.getConfig().getStringList("canceled-events.command-use.whitelisted-commands")
+                    .contains(commandArguments[0].replaceFirst("/", ""));
+            event.setCancelled(cancelled);
+            if (cancelled) player.sendMessage(Color.translate(plugin.getConfig().getString("messages.event-messages.command-use-message")));
         }
     }
 }
