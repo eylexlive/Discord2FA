@@ -23,19 +23,23 @@ public class PluginHook {
         this.plugin = plugin;
     }
 
-    public void execute() {
-        if (!enabled)
-            return;
+    public PluginHook execute() {
+        if (!enabled) return this;
+
         final Logger logger = plugin.getLogger();
         logger.info("Hooking into " + pluginName);
+
         final PluginManager pluginManager = plugin.getServer().getPluginManager();
         if (pluginManager.getPlugin(pluginName) == null) {
             logger.warning("ERROR: There was an error hooking into " + pluginName + "!");
-            return;
+            return this;
         }
-        final HookListener hookListener = new HookListener(
-                "io.github.eylexlive.discord2fa.hook.hookevent." + pluginName + "Event");
+
+        final HookListener hookListener = new HookListener("io.github.eylexlive.discord2fa.hook.hookevent." + pluginName + "Event");
         pluginManager.registerEvents(hookListener.getListener(), plugin);
+
         logger.info("Hooked into " + pluginName);
+
+        return this;
     }
 }

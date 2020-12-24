@@ -3,7 +3,7 @@ package io.github.eylexlive.discord2fa.command;
 import io.github.eylexlive.discord2fa.Main;
 import io.github.eylexlive.discord2fa.manager.Discord2FAManager;
 import io.github.eylexlive.discord2fa.provider.Provider;
-import io.github.eylexlive.discord2fa.util.Color;
+import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -42,19 +42,19 @@ public class Discord2FACommand implements CommandExecutor {
         Player onlinePlayer = null;
         if (args.length >= 2) {
             onlinePlayer = plugin.getServer().getPlayer(args[1]);
-            if (onlinePlayer == null)
+            if (onlinePlayer == null) {
+                sender.sendMessage("§cPlayer not found: " + args[1]);
                 return true;
+            }
         }
 
         if (args.length == 0) {
             sender.sendMessage(mainMessage);
             if (sender.hasPermission("discord2fa.admin")) {
                 sender.sendMessage(
-                        "§fBot status: §"+ (plugin.getConnectStatus() ? "aConnected." : "cConnect failed!")
+                        "§fBot status: §"+ (plugin.isConnected() ? "aConnected." : "cConnect failed!")
                 );
-                String helpMessage = plugin.getConfig().getString("messages.discord2fa-command.help-message");
-                helpMessage = Color.translate(helpMessage);
-                sender.sendMessage(helpMessage.split("%nl%"));
+                sender.sendMessage(ConfigUtil.getString("messages.discord2fa-command.help-message").split("%nl%"));
             }
         }
         else if (args.length == 1) {
@@ -63,10 +63,7 @@ public class Discord2FACommand implements CommandExecutor {
                     sender.sendMessage("§cYou do not have permission to use that command.");
                     return true;
                 }
-                String verifyListMessage = plugin.getConfig().getString("messages.discord2fa-command.verifyList-message");
-                verifyListMessage = Color.translate(verifyListMessage)
-                        .replace("%list%", provider.getListMessage());
-                sender.sendMessage(verifyListMessage.split("%nl%"));
+                sender.sendMessage(ConfigUtil.getString("messages.discord2fa-command.verifyList-message", "list:" + provider.getListMessage()).split("%nl%"));
             }
             else if (args[0].equalsIgnoreCase("reloadconfig")) {
                 if (!sender.hasPermission("discord2fa.admin")) {
@@ -74,17 +71,17 @@ public class Discord2FACommand implements CommandExecutor {
                     return true;
                 }
                 plugin.reloadConfig();
-                sender.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.reload-success")));
+                sender.sendMessage(ConfigUtil.getString("messages.discord2fa-command.reload-success"));
             }
             else if (args[0].equalsIgnoreCase("enable")) {
-                if (!plugin.getConfig().getBoolean("authentication-for-players.enabled")) {
+                if (!ConfigUtil.getBoolean("authentication-for-players.enabled")) {
                     sender.sendMessage("§cYou can do it when 2FA enabled for players.");
                     return true;
                 }
                 discord2FAManager.sendEnabling2FARequest((Player) sender);
             }
             else if (args[0].equalsIgnoreCase("disable")) {
-                if (!plugin.getConfig().getBoolean("authentication-for-players.enabled")) {
+                if (!ConfigUtil.getBoolean("authentication-for-players.enabled")) {
                     sender.sendMessage("§cYou can do it when 2FA enabled for players.");
                     return true;
                 }
@@ -101,10 +98,7 @@ public class Discord2FACommand implements CommandExecutor {
             }
             else if (args[0].equalsIgnoreCase("generatebackupcodes")) {
                 final List<String> codes = provider.generateBackupCodes(onlinePlayer);
-                String message = plugin.getConfig().getString("messages.discord2fa-command.backup-codes-generated");
-                message = message.replace("%player%", onlinePlayer.getName());
-                message = message.replace("%codes%", codes.toString());
-                sender.sendMessage(Color.translate(message));
+                sender.sendMessage(ConfigUtil.getString("messages.discord2fa-command.backup-codes-generated", "player:" + onlinePlayer.getName(), "codes:" + codes.toString()));
             }
         }
         else if (args.length == 3) {
@@ -115,21 +109,15 @@ public class Discord2FACommand implements CommandExecutor {
             final String discord = args[2];
             if (args[0].equalsIgnoreCase("addtoverifylist")) {
                 if (discord.length() != 18) {
-                    sender.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.invalid-discord-id")));
+                    sender.sendMessage(ConfigUtil.getString("messages.discord2fa-command.invalid-discord-id"));
                     return true;
                 }
                 provider.addToVerifyList(onlinePlayer, discord);
-                String message = plugin.getConfig().getString("messages.discord2fa-command.added-to-verifyList-message");
-                message = message.replace("%player%", onlinePlayer.getName());
-                message = message.replace("%id%", discord);
-                sender.sendMessage(Color.translate(message));
+                sender.sendMessage(ConfigUtil.getString("messages.discord2fa-command.added-to-verifyList-message", "player:" + onlinePlayer.getName(), "id:" + discord));
             }
             else if (args[0].equalsIgnoreCase("removefromverifylist")) {
                 provider.removeFromVerifyList(onlinePlayer);
-                String message = plugin.getConfig().getString("messages.discord2fa-command.removed-from-verifyList-message");
-                message = message.replace("%player%", onlinePlayer.getName());
-                message = message.replace("%id%", discord);
-                sender.sendMessage(Color.translate(message));
+                sender.sendMessage(ConfigUtil.getString("messages.discord2fa-command.removed-from-verifyList-message", "player:" + onlinePlayer.getName(), "id:" + discord));
             }
         }
         return true;

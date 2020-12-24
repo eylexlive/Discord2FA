@@ -1,8 +1,7 @@
 package io.github.eylexlive.discord2fa.listener;
 
 import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.util.Color;
-import org.bukkit.Material;
+import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,14 +22,14 @@ public class PlayerDropItemListener implements Listener {
 
     @EventHandler
     public void handleItemDrop(PlayerDropItemEvent event) {
-        if (!plugin.getConfig().getBoolean("canceled-events.item-drop.cancel"))
+        if (!ConfigUtil.getBoolean("canceled-events.item-drop.cancel"))
             return;
         final Player player= event.getPlayer();
         if (plugin.getDiscord2FAManager().isInCheck(player)) {
-            final boolean cancelled = !plugin.getConfig().getStringList("canceled-events.item-drop.whitelisted-materials")
+            final boolean cancelled = !ConfigUtil.getStringList("canceled-events.item-drop.whitelisted-materials")
                     .contains(event.getItemDrop().getItemStack().getType().name());
             event.setCancelled(cancelled);
-            if (cancelled) player.sendMessage(Color.translate(plugin.getConfig().getString("messages.event-messages.item-drop-message")));
+            if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.item-drop-message"));
         }
     }
 }

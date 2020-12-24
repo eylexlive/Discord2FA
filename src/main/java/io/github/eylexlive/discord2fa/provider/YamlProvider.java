@@ -4,7 +4,7 @@ import io.github.eylexlive.discord2fa.Main;
 import io.github.eylexlive.discord2fa.event.AuthCompleteEvent;
 import io.github.eylexlive.discord2fa.file.Config;
 import io.github.eylexlive.discord2fa.manager.Discord2FAManager;
-import org.apache.commons.lang.RandomStringUtils;
+import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -53,16 +53,16 @@ public class YamlProvider extends Provider {
     @Override
     public void authPlayer(Player player) {
         yaml.set("verify." + player.getName() + ".ip", String.valueOf(player.getAddress().getAddress().getHostAddress()));
+
         final Discord2FAManager discord2FAManager = plugin.getDiscord2FAManager();
         discord2FAManager.removePlayerFromCheck(player);
         discord2FAManager.getLeftRights().put(player.getUniqueId(), null);
         discord2FAManager.getCheckCode().put(player.getUniqueId(), null);
+
         plugin.getLogger().info(player.getName() + "'s account was authenticated!");
-        discord2FAManager.unSitPlayer(player);
-        final List<String> adminIds = plugin.getConfig().getStringList("logs.admin-ids");
-        if (plugin.getConfig().getBoolean("logs.enabled"))
-            discord2FAManager.sendLog(adminIds, plugin.getConfig().getString("logs.player-authenticated")
-                    .replace("%player%",player.getName()));
+        final List<String> adminIds = ConfigUtil.getStringList("logs.admin-ids");
+        if (ConfigUtil.getBoolean("logs.enabled"))
+            discord2FAManager.sendLog(adminIds, ConfigUtil.getString("logs.player-authenticated", "player:" + player.getName()));
         plugin.getServer().getPluginManager().callEvent(new AuthCompleteEvent(player));
     }
 
@@ -71,7 +71,7 @@ public class YamlProvider extends Provider {
         final StringBuilder codes = new StringBuilder();
         for (int i = 1; i <= 5; i++) {
             codes.append(plugin.getDiscord2FAManager().getRandomCode(
-                    plugin.getConfig().getInt("code-lenght"))
+                    ConfigUtil.getInt("code-lenght"))
             ).append("-");
         }
         yaml.set("verify."+ player.getName() +".backup-codes", codes.toString());

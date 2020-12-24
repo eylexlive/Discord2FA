@@ -3,7 +3,7 @@ package io.github.eylexlive.discord2fa.command;
 import io.github.eylexlive.discord2fa.Main;
 import io.github.eylexlive.discord2fa.manager.Discord2FAManager;
 import io.github.eylexlive.discord2fa.provider.Provider;
-import io.github.eylexlive.discord2fa.util.Color;
+import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -38,19 +38,19 @@ public class AuthCommand implements CommandExecutor {
             return true;
         }
         if (!discord2FAManager.isInCheck(player)) {
-            player.sendMessage(Color.translate(plugin.getConfig().getString("messages.auth-command.already-verified-message")));
+            player.sendMessage(ConfigUtil.getString("messages.auth-command.already-verified-message"));
             return true;
         }
         if (args.length == 0) {
-            player.sendMessage(Color.translate(plugin.getConfig().getString("messages.auth-command.help-message")));
+            player.sendMessage(ConfigUtil.getString("messages.auth-command.help-message"));
         }
         else if (args.length == 1) {
-            if (!plugin.getConnectStatus()){
+            if (!plugin.isConnected()){
                 player.sendMessage("§cOps, the bot connection failed. You cannot do this now.");
                 return true;
             }
             else if (!discord2FAManager.isInCheck(player)) {
-                player.sendMessage(Color.translate(plugin.getConfig().getString("messages.auth-command.already-verified-message")));
+                player.sendMessage(ConfigUtil.getString("messages.auth-command.already-verified-message"));
                 return true;
             }
             final UUID uuid = player.getUniqueId();
@@ -65,10 +65,10 @@ public class AuthCommand implements CommandExecutor {
             }
             if (provider.isBackupCode(player, args[0])) {
                 provider.removeBackupCode(player, args[0]);
-                player.sendMessage(Color.translate(plugin.getConfig().getString("messages.auth-command.backup-code-used")));
+                player.sendMessage(ConfigUtil.getString("messages.auth-command.backup-code-used"));
             }
             provider.authPlayer(player);
-            player.sendMessage(Color.translate(plugin.getConfig().getString("messages.auth-command.auth-success-message")));
+            player.sendMessage(ConfigUtil.getString("messages.auth-command.auth-success-message"));
         }
         return true;
     }

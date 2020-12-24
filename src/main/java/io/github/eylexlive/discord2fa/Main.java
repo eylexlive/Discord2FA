@@ -7,6 +7,7 @@ import io.github.eylexlive.discord2fa.manager.*;
 import io.github.eylexlive.discord2fa.provider.MySQLProvider;
 import io.github.eylexlive.discord2fa.provider.Provider;
 import io.github.eylexlive.discord2fa.provider.YamlProvider;
+import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import io.github.eylexlive.discord2fa.util.Metrics;
 import io.github.eylexlive.discord2fa.util.UpdateCheck;
 import org.bukkit.entity.Entity;
@@ -26,6 +27,8 @@ public class Main extends JavaPlugin {
 
     private static Main instance;
 
+    private Bot bot;
+
     private Discord2FAManager discord2FAManager;
     private HookManager hookManager;
 
@@ -43,22 +46,29 @@ public class Main extends JavaPlugin {
         getCommand("auth").setExecutor(new AuthCommand(this));
         getCommand("discord2fa").setExecutor(new Discord2FACommand(this));
 
-        provider = (isMySQLEnabled() ? new MySQLProvider() : new YamlProvider());
-        provider.setupDatabase();
+        registerListeners();
+
         discord2FAManager = new Discord2FAManager(this);
         hookManager = new HookManager(this);
 
-        registerListeners();
+        provider = isMySQLEnabled() ? new MySQLProvider() : new YamlProvider();
+        provider.setupDatabase();
+
         new Metrics(this);
         new UpdateCheck(this).checkUpdate();
-        CompletableFuture.runAsync(() -> new Bot(getConfig().getString("bot-token"), this).login());
+        CompletableFuture.runAsync(() -> {
+            bot = new Bot(ConfigUtil.getString("bot-token"), this).login();
+        }).join();
     }
 
     @Override
     public void onDisable() {
         discord2FAManager.getArmorStands().values().forEach(Entity::remove);
+        getServer().getScheduler().cancelTasks(this);
         if (provider != null)
             provider.saveDatabase();
+        if (bot != null)
+            bot.logout();
     }
 
     private void registerListeners() {
@@ -96,10 +106,10 @@ public class Main extends JavaPlugin {
     }
 
     public boolean isMySQLEnabled() {
-        return getConfig().getBoolean("mysql.enabled");
+        return ConfigUtil.getBoolean("mysql.enabled");
     }
 
-    public boolean getConnectStatus() {
-        return Bot.jda != null;
-    }
+    public boolean isConnected() { return bot.getJDA() != null; }
+
+    public Bot getBot() { return bot; }
 }

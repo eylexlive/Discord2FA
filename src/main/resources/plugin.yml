@@ -1,7 +1,8 @@
 name: Discord2FA
+version: ${project.version}
 author: EylexLive
-version: 3.2
 main: io.github.eylexlive.discord2fa.Main
+description: ${project.description}
 softdepend: [AuthMe, LoginSecurity]
 
 commands:

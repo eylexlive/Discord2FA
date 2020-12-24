@@ -25,7 +25,7 @@ public class AuthmeEvent implements Listener {
     public void handleAuthMeLogin(LoginEvent event) {
         final Player player = event.getPlayer();
         if (plugin.getHookManager().isPluginSupport(HookType.AuthMe))  {
-            this.plugin.getDiscord2FAManager().checkPlayer(player);
+            plugin.getDiscord2FAManager().checkPlayer(player);
         }
     }
 }

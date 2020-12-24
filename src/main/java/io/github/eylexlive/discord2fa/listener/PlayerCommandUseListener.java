@@ -1,7 +1,7 @@
 package io.github.eylexlive.discord2fa.listener;
 
 import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.util.Color;
+import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,15 +23,15 @@ public class PlayerCommandUseListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void handleCommandPreProcess(PlayerCommandPreprocessEvent event) {
-        if (!plugin.getConfig().getBoolean("canceled-events.command-use.cancel"))
+        if (!ConfigUtil.getBoolean("canceled-events.command-use.cancel"))
             return;
         final Player player= event.getPlayer();
         if (plugin.getDiscord2FAManager().isInCheck(player)) {
             final String[] commandArguments = event.getMessage().split(" ");
-            final boolean cancelled = !plugin.getConfig().getStringList("canceled-events.command-use.whitelisted-commands")
+            final boolean cancelled = !ConfigUtil.getStringList("canceled-events.command-use.whitelisted-commands")
                     .contains(commandArguments[0].replaceFirst("/", ""));
             event.setCancelled(cancelled);
-            if (cancelled) player.sendMessage(Color.translate(plugin.getConfig().getString("messages.event-messages.command-use-message")));
+            if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.command-use-message"));
         }
     }
 }

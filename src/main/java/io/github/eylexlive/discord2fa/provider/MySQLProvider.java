@@ -3,7 +3,7 @@ package io.github.eylexlive.discord2fa.provider;
 import io.github.eylexlive.discord2fa.Main;
 import io.github.eylexlive.discord2fa.event.AuthCompleteEvent;
 import io.github.eylexlive.discord2fa.manager.Discord2FAManager;
-import org.apache.commons.lang.RandomStringUtils;
+import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 
 import java.sql.*;
@@ -32,9 +32,9 @@ public class MySQLProvider extends Provider {
             if (resultSet.next()) {
                 return resultSet.getString(sqlPath);
             }
-        } catch (SQLException exception) {
+        } catch (SQLException e) {
             plugin.getLogger().warning("Data cannot be getting:");
-            exception.printStackTrace();
+            e.printStackTrace();
         }
         return null;
     }
@@ -45,26 +45,26 @@ public class MySQLProvider extends Provider {
         try {
             connection = DriverManager.getConnection(
                     "jdbc:mysql://"
-                            + plugin.getConfig().getString("mysql.host")
-                            + ":" + plugin.getConfig().getInt("mysql.port")
-                            + "/" + plugin.getConfig().getString("mysql.database")
+                            + ConfigUtil.getString("mysql.host")
+                            + ":" + ConfigUtil.getInt("mysql.port")
+                            + "/" + ConfigUtil.getString("mysql.database")
                             + "?autoReconnect=true"
                             + "&useSSL="
-                            + plugin.getConfig().getBoolean("mysql.use-ssl")
+                            + ConfigUtil.getBoolean("mysql.use-ssl")
                             + "&characterEncoding=UTF-8",
-                    plugin.getConfig().getString("mysql.username"),
-                    plugin.getConfig().getString("mysql.password")
+                    ConfigUtil.getString("mysql.username"),
+                    ConfigUtil.getString("mysql.password")
             );
             logger.info("[MySQL] Successfully connected to the database!");
             final Statement statement = this.getConnection().createStatement();
             statement.executeUpdate(
-                    "CREATE TABLE IF NOT EXISTS `" + "2fa_backup" + "`(`player` TEXT, `codes` VARCHAR(" + (this.plugin.getConfig().getInt("code-lenght") * 10 + 10)+"))");
+                    "CREATE TABLE IF NOT EXISTS `" + "2fa_backup" + "`(`player` TEXT, `codes` VARCHAR(" + (ConfigUtil.getInt("code-lenght") * 10 + 10)+"))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS `" + "2fa" + "`(`player` TEXT, `discord` VARCHAR(60), `ip` TEXT)");
-        } catch (SQLException exception) {
+        } catch (SQLException e) {
             logger.warning("[MySQL] Connection to database failed!");
             logger.warning("[MySQL] Please make sure that details in config.yml are correct.");
-            exception.printStackTrace();
+            e.printStackTrace();
         }
 
     }
@@ -73,8 +73,8 @@ public class MySQLProvider extends Provider {
     public void saveDatabase() {
         try {
             getConnection().close();
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -96,8 +96,8 @@ public class MySQLProvider extends Provider {
             statement.setString(1, player.getName());
             statement.setString(2,"CURRENTLY_NULL");
             statement.executeUpdate();
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -110,8 +110,8 @@ public class MySQLProvider extends Provider {
                     "DELETE FROM " + "`2fa`" + " WHERE player= '" + player.getName() + "';");
             statement.executeUpdate();
             statement.close();
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -123,18 +123,19 @@ public class MySQLProvider extends Provider {
             statement.setString(1, String.valueOf(player.getAddress().getAddress().getHostAddress()));
             statement.setString(2, player.getName());
             statement.executeUpdate();
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
         final Discord2FAManager discord2FAManager = plugin.getDiscord2FAManager();
         discord2FAManager.removePlayerFromCheck(player);
         discord2FAManager.getLeftRights().put(player.getUniqueId(), null);
         discord2FAManager.getCheckCode().put(player.getUniqueId(), null);
+
         plugin.getLogger().info(player.getName() + "'s account was authenticated!");
-        final List<String> adminIds = plugin.getConfig().getStringList("logs.admin-ids");
-        if (plugin.getConfig().getBoolean("logs.enabled"))
-            discord2FAManager.sendLog(adminIds, plugin.getConfig().getString("logs.player-authenticated")
-                    .replace("%player%",player.getName()));
+        final List<String> adminIds = ConfigUtil.getStringList("logs.admin-ids");
+        if (ConfigUtil.getBoolean("logs.enabled"))
+            discord2FAManager.sendLog(adminIds, ConfigUtil.getString("logs.player-authenticated", "player:" + player.getName()));
         plugin.getServer().getPluginManager().callEvent(new AuthCompleteEvent(player));
     }
 
@@ -143,9 +144,10 @@ public class MySQLProvider extends Provider {
         final StringBuilder codes = new StringBuilder();
         for (int i = 1; i <= 5; i++) {
             codes.append(plugin.getDiscord2FAManager().getRandomCode(
-                    plugin.getConfig().getInt("code-lenght"))
+                    ConfigUtil.getInt("code-lenght"))
             ).append("-");
         }
+
         final PreparedStatement statement;
         if (!isBackupCodesGenerated(player)) {
             try {
@@ -154,8 +156,8 @@ public class MySQLProvider extends Provider {
                 statement.setString(1, player.getName());
                 statement.setString(2, codes.toString());
                 statement.executeUpdate();
-            } catch (SQLException exception) {
-                exception.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         } else {
             try {
@@ -164,8 +166,8 @@ public class MySQLProvider extends Provider {
                 statement.setString(1, codes.toString());
                 statement.setString(2,player.getName());
                 statement.executeUpdate();
-            } catch (SQLException exception) {
-                exception.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
         return Arrays.asList(codes.toString().split("-"));
@@ -188,8 +190,8 @@ public class MySQLProvider extends Provider {
             statement.setString(1, codes.toString());
             statement.setString(2,player.getName());
             statement.executeUpdate();
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -231,9 +233,9 @@ public class MySQLProvider extends Provider {
         try {
             if (connection == null || !connection.isValid(1))
                 setupDatabase();
-        } catch (SQLException exception) {
+        } catch (SQLException e) {
             plugin.getLogger().warning("[MySQL] Re-connection to the database failed!");
-            exception.printStackTrace();
+            e.printStackTrace();
         }
         return connection;
     }

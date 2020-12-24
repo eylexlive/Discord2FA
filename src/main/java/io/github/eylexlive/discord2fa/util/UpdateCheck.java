@@ -23,6 +23,8 @@ public class UpdateCheck {
     }
 
     public void checkUpdate() {
+        if (!ConfigUtil.getBoolean("check-for-updates"))
+            return;
         System.out.println("-----------------------------");
         System.out.println("     Discord2FA Updater     ");
         System.out.println(" ");

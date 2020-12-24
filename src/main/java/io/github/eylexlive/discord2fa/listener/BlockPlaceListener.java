@@ -1,7 +1,7 @@
 package io.github.eylexlive.discord2fa.listener;
 
 import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.util.Color;
+import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,14 +22,14 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler
     public void handleBlockPlace(BlockPlaceEvent event) {
-        if (!plugin.getConfig().getBoolean("canceled-events.block-place.cancel"))
+        if (!ConfigUtil.getBoolean("canceled-events.block-place.cancel"))
             return;
         final Player player= event.getPlayer();
         if (plugin.getDiscord2FAManager().isInCheck(player)) {
-            final boolean cancelled = !plugin.getConfig().getStringList("canceled-events.block-place.whitelisted-blocks")
+            final boolean cancelled = !ConfigUtil.getStringList("canceled-events.block-place.whitelisted-blocks")
                     .contains(event.getBlock().getType().name());
             event.setCancelled(cancelled);
-            if (cancelled) player.sendMessage(Color.translate(plugin.getConfig().getString("messages.event-messages.block-place-message")));
+            if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.block-place-message"));
         }
     }
 }

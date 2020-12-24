@@ -1,12 +1,15 @@
 package io.github.eylexlive.discord2fa.manager;
 
 import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.bot.Bot;
 import io.github.eylexlive.discord2fa.event.AuthFailEvent;
 import io.github.eylexlive.discord2fa.runnable.CountdownRunnable;
-import io.github.eylexlive.discord2fa.util.Color;
+import io.github.eylexlive.discord2fa.util.ConfigUtil;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.requests.RestAction;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.ArmorStand;
@@ -16,6 +19,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
@@ -42,57 +46,36 @@ public class Discord2FAManager {
         this.plugin = plugin;
     }
 
-    private void setThenSend(Player player, String code) {
-        checkCode.put(player.getUniqueId(), code);
-        final String message = plugin.getConfig().getString("messages.discord-message")
-                .replace("%code%", checkCode.get(player.getUniqueId()));
-        final String memberId = plugin.getProvider().getMemberID(player);
-        if (memberId == null) {
-            plugin.getLogger().warning("We're cannot get player's Discord ID?");
-            return;
-        }
-
-        if (leftRights.get(player.getUniqueId()) == null)
-            leftRights.put(player.getUniqueId(), plugin.getConfig().getInt("number-of-rights"));
-
-        if (!sendLog(Collections.singletonList(memberId), message))
-            player.sendMessage(Color.translate(plugin.getConfig().getString("messages.msg-send-failed")));
-    }
-
     public void addPlayerToCheck(Player player) {
-        if (isInCheck(player))
-            return;
+        if (isInCheck(player)) return;
+
         checkPlayers.add(player);
-        final String code = getRandomCode(plugin.getConfig().getInt("code-lenght"));
-        if (!plugin.getConfig().getBoolean("generate-new-code-always")) {
+        final String code = getRandomCode(ConfigUtil.getInt("code-lenght"));
+
+        if (!ConfigUtil.getBoolean("generate-new-code-always")) {
             if (checkCode.get(player.getUniqueId()) == null) setThenSend(player, code);
         } else {
             setThenSend(player, code);
         }
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                sitPlayer(player);
-            }
-        }.runTaskLater(plugin, 10L);
+
+        new BukkitRunnable() { @Override public void run() { sitPlayer(player); } }.runTaskLater(plugin, 10L);
     }
     
     public void checkPlayer(Player player) {
-        if (plugin.getConnectStatus()) {
-            if (!plugin.getProvider().playerExits(player))
-                return;
-            if (plugin.getConfig().getBoolean("auto-verification")) {
+        if (plugin.isConnected()) {
+            if (!plugin.getProvider().playerExits(player)) return;
+
+            if (ConfigUtil.getBoolean("auto-verification")) {
                 final String currentlyIp = player.getAddress().getAddress().getHostAddress();
                 final String lastIp = plugin.getProvider().getIP(player);
                 if (currentlyIp.equals(lastIp)) {
-                    player.sendMessage(Color.translate(plugin.getConfig().getString("messages.auto-verify-success-message")));
+                    player.sendMessage(ConfigUtil.getString("messages.auto-verify-success-message"));
                     return;
                 }
             }
             addPlayerToCheck(player);
             player.sendMessage(getAuthMessage(true, -1));
-            new CountdownRunnable(player, plugin)
-                    .runTaskTimer(plugin, 0L, 20L);
+            new CountdownRunnable(player, plugin).runTaskTimer(plugin, 0L, 20L);
         } else {
             player.sendMessage("§4§l[Discord2FA|WARNING] §cHey! please check the console.");
             plugin.getLogger().warning("Ops, the bot connect failed. Please provide the bot connection.");
@@ -101,60 +84,73 @@ public class Discord2FAManager {
 
     public void failPlayer(Player player) {
         final Server server = plugin.getServer();
-        leftRights.put(player.getUniqueId(), plugin.getConfig().getInt("number-of-rights"));
-        String command = plugin.getConfig().getString("rights-reached-console-command");
-        command = command.replace("%player%", player.getName());
-        server.dispatchCommand(server.getConsoleSender(), command);
-        final List<String> adminIds = plugin.getConfig().getStringList("logs.admin-ids");
-        if (plugin.getConfig().getBoolean("logs.enabled"))
-            if (!sendLog(adminIds, plugin.getConfig().getString("logs.player-reached-limit").replace("%player%",player.getName()))) {
-                player.sendMessage(Color.translate(plugin.getConfig().getString("messages.msg-send-failed")));
+        leftRights.put(player.getUniqueId(), ConfigUtil.getInt("number-of-rights"));
+        server.dispatchCommand(server.getConsoleSender(), ConfigUtil.getString("rights-reached-console-command", "player:" + player.getName()));
+        final List<String> adminIds = ConfigUtil.getStringList("logs.admin-ids");
+
+        if (ConfigUtil.getBoolean("logs.enabled"))
+            if (!sendLog(adminIds, ConfigUtil.getString("logs.player-reached-limit", "player:" + player.getName()))) {
+                player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
             }
         plugin.getServer().getPluginManager().callEvent(new AuthFailEvent(player));
     }
 
     public void failPlayer(Player player, int rightSize) {
         leftRights.put(player.getUniqueId(), leftRights.get(player.getUniqueId()) - rightSize);
-        String message = plugin.getConfig().getString("messages.auth-command.invalid-code-message");
-        message = message.replace("%rights%", String.valueOf(leftRights.get(player.getUniqueId())));
-        player.sendMessage(Color.translate(message));
-        final List<String> adminIds = plugin.getConfig().getStringList("logs.admin-ids");
-        if (plugin.getConfig().getBoolean("logs.enabled"))
-           if (!sendLog(adminIds, plugin.getConfig().getString("logs.player-entered-wrong-code")
-                   .replace("%player%",player.getName())
-                   .replace("%left%",leftRights.get(player.getUniqueId())+ ""))) {
-               player.sendMessage(Color.translate(plugin.getConfig().getString("messages.msg-send-failed")));
+
+        player.sendMessage(ConfigUtil.getString("messages.auth-command.invalid-code-message", "rights:" + leftRights.get(player.getUniqueId())));
+        final List<String> adminIds = ConfigUtil.getStringList("logs.admin-ids");
+
+        if (ConfigUtil.getBoolean("logs.enabled"))
+           if (!sendLog(adminIds, ConfigUtil.getString("logs.player-entered-wrong-code", "player:" + player.getName(), "left:" + leftRights.get(player.getUniqueId())))) {
+               player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
            }
     }
 
     public void removePlayerFromCheck(Player player) {
-        if (!isInCheck(player))
-            return;
+        if (!isInCheck(player)) return;
+
         checkPlayers.remove(player);
         unSitPlayer(player);
+
         if (checkCode.get(player.getUniqueId()) != null
-                && plugin.getConfig().getBoolean("generate-new-code-always")) {
+                && ConfigUtil.getBoolean("generate-new-code-always")) {
             checkCode.put(player.getUniqueId(), null);
         }
     }
 
+    private void setThenSend(Player player, String code) {
+        final String memberId = plugin.getProvider().getMemberID(player);
+        checkCode.put(player.getUniqueId(), code);
+
+        if (memberId == null) {
+            plugin.getLogger().warning("We're cannot get player's Discord ID?");
+            return;
+        }
+
+        if (leftRights.get(player.getUniqueId()) == null)
+            leftRights.put(player.getUniqueId(), ConfigUtil.getInt("number-of-rights"));
+
+        if (!sendLog(Collections.singletonList(memberId), ConfigUtil.getString("messages.discord-message", "code:" + checkCode.get(player.getUniqueId()))))
+            player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
+    }
+
     public String[] getAuthMessage(boolean state, int i) {
-        final boolean bool = state && i == -1; int format = (bool ? 1 : 2);
-        final String replaceKey = (bool ? "%countdown%" : "%seconds%");
+        final boolean bool = state && i == -1;
+        final int format = (bool ? 1 : 2);
+
+        final String replaceKey = (bool ? "countdown" : "seconds");
         final String replacementKey = (
-                bool ? String.valueOf(plugin.getConfig().getInt("auth-countdown")) :
+                bool ? String.valueOf(ConfigUtil.getInt("auth-countdown")) :
                         i +" second"+(i > 1 ? "s" : "")
         );
-        String authMessage = plugin.getConfig().getString("messages.auth-message.format-" + format);
-        authMessage = Color.translate(authMessage);
-        authMessage = authMessage.replace(replaceKey, replacementKey);
-        return authMessage.split("%nl%");
+        return ConfigUtil.getString("messages.auth-message.format-" + format, replaceKey + ":" + replacementKey).split("%nl%");
     }
 
     public String getRandomCode(int count) {
         final CodeType codeType;
         try {
-            codeType = CodeType.valueOf(plugin.getConfig().getString("code-type"));
+            codeType = CodeType.valueOf(ConfigUtil.getString("code-type"));
         } catch (IllegalArgumentException e) {
             return "Invalid code type. **Please check it in config.yml** (Write it in upper case)";
         }
@@ -173,13 +169,12 @@ public class Discord2FAManager {
         final String code = confirmCode.get(player.getUniqueId());
         if (message.equals(code) && !code.equals("§")) {
             final User user = confirmUser.get(player.getUniqueId());
-            final String msg = plugin.getConfig().getString("authentication-for-players.successfully-confirmed");
 
             plugin.getProvider().addToVerifyList(player, user.getId());
-            player.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.player-auth-enabled")));
+            player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-enabled"));
 
-            if (!sendLog(msg, Collections.singletonList(user)))
-                player.sendMessage(Color.translate(plugin.getConfig().getString("messages.msg-send-failed")));
+            if (!sendLog(ConfigUtil.getString("authentication-for-players.successfully-confirmed"), Collections.singletonList(user)))
+                player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
 
             confirmCode.put(player.getUniqueId(), null);
             confirmUser.put(player.getUniqueId(), null);
@@ -194,17 +189,17 @@ public class Discord2FAManager {
 
     public void disable2FA(Player player) {
         if (!plugin.getProvider().playerExits(player)) {
-            player.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.player-auth-already-disabled")));
+            player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-already-disabled"));
             return;
         }
 
         plugin.getProvider().removeFromVerifyList(player);
-        player.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.player-auth-disabled")));
+        player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-disabled"));
     }
 
     public void sendEnabling2FARequest(Player player) {
         if (plugin.getProvider().playerExits(player)) {
-            player.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.player-auth-already-enabled")));
+            player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-already-enabled"));
             return;
         }
 
@@ -213,16 +208,9 @@ public class Discord2FAManager {
             return;
 
         confirmCode.put(player.getUniqueId(), "§");
-        player.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.player-auth-enter-discord")));
+        player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-enter-discord"));
 
-        final BukkitTask task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                final String code = confirmCode.get(player.getUniqueId());
-                if (code != null && code.equals("§"))
-                    cancel2FAReq(player);
-            }
-        }.runTaskLater(plugin, 20 * 30L);
+        final BukkitTask task = new BukkitRunnable() { @Override public void run() { final String code = confirmCode.get(player.getUniqueId());if (code != null && code.equals("§")) cancel2FAReq(player); }}.runTaskLater(plugin, 20 * 30L);
         playerTasks.put(player.getUniqueId(), task.getTaskId());
     }
 
@@ -231,41 +219,29 @@ public class Discord2FAManager {
         final User user;
 
         if (split.length == 2)
-            user = Bot.jda.getUserByTag(split[0], split[1]);
+            user = plugin.getBot().getJDA().getUserByTag((split[0].length() >= 2 && split[0].length() <= 32 ? split[0] : "§§"), (split[1].length() == 4 ? split[1] : "0000"));
         else
             user = null;
 
         if (user == null) {
-            player.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.player-auth-discord-acc-not-found")));
+            player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-discord-acc-not-found"));
             return;
         }
 
-        final String code = getRandomCode(plugin.getConfig().getInt("code-lenght"));
+        final String code = getRandomCode(ConfigUtil.getInt("code-lenght"));
         confirmCode.put(player.getUniqueId(), code);
 
-        final String msg = plugin.getConfig().getString("authentication-for-players.confirm-your-account")
-                .replace("%nl%", "\n")
-                .replace("%code%", code)
-                .replace("%player%", player.getName());
-
-        if (!sendLog(msg, Collections.singletonList(user)))
-            player.sendMessage(Color.translate(plugin.getConfig().getString("messages.msg-send-failed")));
+        if (!sendLog(ConfigUtil.getString("authentication-for-players.confirm-your-account", "nl:" + "\n", "code:" + code, "player:" + player.getName()), Collections.singletonList(user)))
+            player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
 
         confirmUser.put(player.getUniqueId(), user);
-        player.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.player-auth-confirm-code-sent")));
+        player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-confirm-code-sent"));
 
         final Integer taskID = playerTasks.get(player.getUniqueId());
         if (taskID != null)
             Bukkit.getScheduler().cancelTask(taskID);
 
-        final BukkitTask task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                final String code = confirmCode.get(player.getUniqueId());
-                if (code != null && !code.equals("§"))
-                    cancel2FAReq(player);
-            }
-        }.runTaskLater(plugin, 20 * 30L);
+        final BukkitTask task = new BukkitRunnable() { @Override public void run() { final String code = confirmCode.get(player.getUniqueId());if (code != null && !code.equals("§")) cancel2FAReq(player); }}.runTaskLater(plugin, 20 * 30L);
         playerTasks.put(player.getUniqueId(), task.getTaskId());
     }
 
@@ -273,40 +249,40 @@ public class Discord2FAManager {
         confirmCode.put(player.getUniqueId(), null);
         confirmUser.put(player.getUniqueId(), null);
         playerTasks.put(player.getUniqueId(), null);
-        player.sendMessage(Color.translate(plugin.getConfig().getString("messages.discord2fa-command.player-auth-timeout")));
+        player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-timeout"));
     }
 
     public boolean sendLog(String path, List<User> userList) {
-        final boolean[] bool = {true};
+        final boolean[] successfullySent = {true};
         userList.forEach(user ->  {
            if (user == null)
                return;
             user.openPrivateChannel()
                     .submit()
                     .thenCompose(channel -> channel.sendMessage(path).submit())
-                    .whenComplete((message, error) -> {
-                        if (error != null)
-                            bool[0] = false;
-                    });
+                    .exceptionally((error) -> {
+                        successfullySent[0] = false;
+                        return null;
+                    }).join();
         });
-        return bool[0];
+        return successfullySent[0];
     }
 
     public boolean sendLog(List<String> stringList, String path) {
-        final boolean[] bool = {true};
+        final boolean[] successfullySent = {true};
         stringList.forEach(id ->  {
-            final User user = Bot.jda.getUserById(id);
+            final User user = plugin.getBot().getJDA().getUserById(id);
             if (user == null)
                 return;
             user.openPrivateChannel()
                     .submit()
                     .thenCompose(channel -> channel.sendMessage(path).submit())
-                    .whenComplete((message, error) -> {
-                        if (error != null)
-                            bool[0] = false;
-                    });
+                    .exceptionally((error) -> {
+                        successfullySent[0] = false;
+                        return null;
+                    }).join();
         });
-        return bool[0];
+        return successfullySent[0];
     }
 
     public void sitPlayer(Player player) {

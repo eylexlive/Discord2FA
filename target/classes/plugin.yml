@@ -1,0 +1,12 @@
+name: Discord2FA
+version: 3.2
+author: EylexLive
+main: io.github.eylexlive.discord2fa.Main
+description: 2FA plugin with Discord.
+softdepend: [AuthMe, LoginSecurity]
+
+commands:
+  auth:
+    aliases: [dcauth]
+  discord2fa:
+    aliases: [dc2fa, dca]

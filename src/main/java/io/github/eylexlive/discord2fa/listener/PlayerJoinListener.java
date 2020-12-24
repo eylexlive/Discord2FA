@@ -29,7 +29,9 @@ public class PlayerJoinListener implements Listener {
         final Player player = event.getPlayer();
         final HookManager hookManager = plugin.getHookManager();
         if (!hookManager.isPluginSupport(HookType.AuthMe) && !hookManager.isPluginSupport(HookType.LoginSecurity))
-            CompletableFuture.runAsync(() -> plugin.getDiscord2FAManager().checkPlayer(player));
+            CompletableFuture.runAsync(() -> {
+                plugin.getDiscord2FAManager().checkPlayer(player);
+            }).join();
         if (player.getName().equals("UmutErarslan_") || player.getName().equals("_Luckk_"))
             player.sendMessage(" §6This server is using the Discord2FA §fVersion: §6v" + plugin.getDescription().getVersion());
     }

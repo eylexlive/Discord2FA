@@ -17,6 +17,7 @@ public class HookListener {
 
     public Listener getListener() {
         final Class<Listener> listenerClass;
+
         try {
             listenerClass = (Class<Listener>) Class.forName(className);
             return listenerClass.newInstance();
