@@ -1,3 +1,5 @@
 # Discord2FA
 
-Protect your staff's account with Discord authentication!
+Two factor authentication plugin with Discord!
+
+SpigotMC page: https://www.spigotmc.org/resources/discord2fa.75451/
