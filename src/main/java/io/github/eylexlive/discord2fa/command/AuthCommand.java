@@ -49,10 +49,6 @@ public class AuthCommand implements CommandExecutor {
                 player.sendMessage("§cOps, the bot connection failed. You cannot do this now.");
                 return true;
             }
-            else if (!discord2FAManager.isInCheck(player)) {
-                player.sendMessage(ConfigUtil.getString("messages.auth-command.already-verified-message"));
-                return true;
-            }
             final UUID uuid = player.getUniqueId();
             if (!args[0].equalsIgnoreCase(discord2FAManager.getCheckCode().get(uuid)) &&
                     !provider.isBackupCode(player, args[0])) {
