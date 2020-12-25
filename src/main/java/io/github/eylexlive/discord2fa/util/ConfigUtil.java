@@ -6,6 +6,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/*
+ *	Created by EylexLive on Feb 23, 2020.
+ *	Currently version: 3.3
+ */
 
 public class ConfigUtil {
 
@@ -13,20 +19,22 @@ public class ConfigUtil {
 
     public static @NotNull String getString(String path) {
         final String str = plugin.getConfig().getString(path);
-        if (str == null) return "Key not found!";
-        if (!str.contains("&"))
+        if (str == null)
+            return "Key not found!";
+        final Pattern pattern = Pattern.compile("&([0-fk-or])");
+        if (!pattern.matcher(str).find())
             return str;
         return ChatColor.translateAlternateColorCodes('&', str);
     }
 
     public static @NotNull String getString(String path, String... placeholders) {
-        String msg = getString(path);
+        String s = getString(path);
         for (String str : placeholders) {
             final String placeholder = str.split(":")[0];
             final String value = str.replaceFirst(Matcher.quoteReplacement(placeholder + ":"), "");
-            msg = msg.replaceAll("%"+ Matcher.quoteReplacement(placeholder)+"%", value);
+            s = s.replaceAll("%"+ Matcher.quoteReplacement(placeholder)+"%", value);
         }
-        return msg;
+        return s;
     }
 
     public static List<String> getStringList(String path) {

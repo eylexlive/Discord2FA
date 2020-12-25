@@ -6,7 +6,7 @@
 
     <groupId>io.github.eylexlive</groupId>
     <artifactId>Discord2FA</artifactId>
-    <version>3.2</version>
+    <version>3.3</version>
     <description>2FA plugin with Discord.</description>
 
     <properties>

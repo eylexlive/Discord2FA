@@ -13,7 +13,7 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.2
+ *	Currently version: 3.3
  */
 
 public class YamlProvider extends Provider {
@@ -69,11 +69,11 @@ public class YamlProvider extends Provider {
     @Override
     public List<String> generateBackupCodes(Player player) {
         final StringBuilder codes = new StringBuilder();
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 5; i++)
             codes.append(plugin.getDiscord2FAManager().getRandomCode(
                     ConfigUtil.getInt("code-lenght"))
             ).append("-");
-        }
+
         yaml.set("verify."+ player.getName() +".backup-codes", codes.toString());
         return Arrays.asList(codes.toString().split("-"));
     }
@@ -83,12 +83,17 @@ public class YamlProvider extends Provider {
         if (!isBackupCode(player, code))
             return;
         final String codeData = getData("verify." + player.getName() + ".backup-codes");
+
+        if (codeData == null)
+            return;
+
         final List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
         codesWithList.remove(code);
+
         final StringBuilder codes  = new StringBuilder();
-        for (String c: codesWithList) {
+        for (String c: codesWithList)
             codes.append(c).append("-");
-        }
+
         yaml.set("verify." + player.getName() + ".backup-codes", codes.toString());
     }
 
@@ -100,10 +105,12 @@ public class YamlProvider extends Provider {
     @Override
     public boolean isBackupCode(Player player, String code) {
         final String codeData = getData("verify." + player.getName() + ".backup-codes");
+
         if (codeData == null)
             return false;
+
         final List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
-        return codesWithList.contains(code) && !code.equals("CURRENTLY_NULL");
+        return codesWithList.contains(code);
     }
 
     @Override
@@ -123,14 +130,14 @@ public class YamlProvider extends Provider {
 
     @Override
     public String getListMessage() {
-        final StringBuilder stringBuilder = new StringBuilder();
+        final StringBuilder stringBuilder = new StringBuilder().append("\n");
         if (yaml.getConfigurationSection("verify") == null)
             return "Verify list empty.";
         yaml.getConfigurationSection("verify")
                 .getKeys(false)
                 .forEach(key -> {
                     if(stringBuilder.length() > 0)
-                        stringBuilder.append(", ");
+                        stringBuilder.append("\n");
                     stringBuilder.append(key).append("/").append(getData("verify." + key + ".discord"));
                 });
         return stringBuilder.toString();

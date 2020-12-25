@@ -10,11 +10,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.2
+ *	Currently version: 3.3
  */
 
 public class MySQLProvider extends Provider {
@@ -56,17 +57,15 @@ public class MySQLProvider extends Provider {
                     ConfigUtil.getString("mysql.password")
             );
             logger.info("[MySQL] Successfully connected to the database!");
-            final Statement statement = this.getConnection().createStatement();
-            statement.executeUpdate(
-                    "CREATE TABLE IF NOT EXISTS `" + "2fa_backup" + "`(`player` TEXT, `codes` VARCHAR(" + (ConfigUtil.getInt("code-lenght") * 10 + 10)+"))");
-            statement.executeUpdate(
-                    "CREATE TABLE IF NOT EXISTS `" + "2fa" + "`(`player` TEXT, `discord` VARCHAR(60), `ip` TEXT)");
+
+            final Statement statement = getConnection().createStatement();
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `" + "2fa_backup" + "`(`player` TEXT, `codes` VARCHAR(" + (ConfigUtil.getInt("code-lenght") * 10 + 10)+"))");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `" + "2fa" + "`(`player` TEXT, `discord` VARCHAR(60), `ip` TEXT)");
         } catch (SQLException e) {
             logger.warning("[MySQL] Connection to database failed!");
             logger.warning("[MySQL] Please make sure that details in config.yml are correct.");
             e.printStackTrace();
         }
-
     }
 
     @Override
@@ -82,19 +81,11 @@ public class MySQLProvider extends Provider {
     public void addToVerifyList(Player player, String discord) {
         if (playerExits(player))
             return;
-        PreparedStatement statement;
         try {
-            statement = getConnection().prepareStatement(
-                    "INSERT INTO `2fa` (player, discord, ip)" + "VALUES " + "(?, ?, ?);");
+            final PreparedStatement statement = getConnection().prepareStatement(
+                    "INSERT INTO `2fa` (player, discord)" + "VALUES " + "(?, ?);");
             statement.setString(1, player.getName());
             statement.setString(2, discord);
-            statement.setString(3, "CURRENTLY_NULL");
-            statement.executeUpdate();
-
-            statement = getConnection().prepareStatement(
-                    "INSERT INTO `2fa_backup` (player, codes)" + "VALUES " + "(?, ?);");
-            statement.setString(1, player.getName());
-            statement.setString(2,"CURRENTLY_NULL");
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -142,11 +133,10 @@ public class MySQLProvider extends Provider {
     @Override
     public List<String> generateBackupCodes(Player player) {
         final StringBuilder codes = new StringBuilder();
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 5; i++)
             codes.append(plugin.getDiscord2FAManager().getRandomCode(
                     ConfigUtil.getInt("code-lenght"))
             ).append("-");
-        }
 
         final PreparedStatement statement;
         if (!isBackupCodesGenerated(player)) {
@@ -178,17 +168,22 @@ public class MySQLProvider extends Provider {
         if (!isBackupCode(player, code))
             return;
         final String codeData = getData(player,"codes","2fa_backup");
+
+        if (codeData == null)
+            return;
+
         final List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
         codesWithList.remove(code);
+
         final StringBuilder codes  = new StringBuilder();
-        for (String c: codesWithList) {
+        for (String c: codesWithList)
             codes.append(c).append("-");
-        }
+
         try {
             final PreparedStatement statement = getConnection().prepareStatement(
                     "UPDATE `2fa_backup` SET `codes` = ? WHERE `player` = ?;");
             statement.setString(1, codes.toString());
-            statement.setString(2,player.getName());
+            statement.setString(2, player.getName());
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -206,7 +201,7 @@ public class MySQLProvider extends Provider {
         if (codeData == null)
             return false;
         final List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
-        return codesWithList.contains(code) && !code.equals("CURRENTLY_NULL");
+        return codesWithList.contains(code);
     }
 
     @Override
@@ -226,7 +221,22 @@ public class MySQLProvider extends Provider {
 
     @Override
     public String getListMessage() {
-        return "§cThis mode is turned off while mysql is enabled right now.";
+        final StringBuilder stringBuilder = new StringBuilder().append("\n");
+        final CompletableFuture<StringBuilder> future = CompletableFuture.supplyAsync(() -> {
+            try {
+                final PreparedStatement statement =  getConnection().prepareStatement("SELECT * FROM `2fa`;");
+                final ResultSet resultSet = statement.executeQuery();
+                while(resultSet.next()) {
+                    if (stringBuilder.length() > 0)
+                        stringBuilder.append("\n");
+                    stringBuilder.append(resultSet.getString(1)).append("/").append(resultSet.getString(2));
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return stringBuilder;
+        });
+        return future.join().toString();
     }
 
     public Connection getConnection() {

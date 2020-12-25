@@ -19,6 +19,7 @@ io\github\eylexlive\discord2fa\util\Metrics$CustomChart.class
 io\github\eylexlive\discord2fa\util\Metrics.class
 io\github\eylexlive\discord2fa\manager\Discord2FAManager$2.class
 io\github\eylexlive\discord2fa\util\Metrics$AdvancedBarChart.class
+io\github\eylexlive\discord2fa\bot\Bot$ActivityEntry.class
 io\github\eylexlive\discord2fa\listener\EntityDamageByEntityListener.class
 io\github\eylexlive\discord2fa\manager\Discord2FAManager.class
 io\github\eylexlive\discord2fa\listener\PlayerCommandUseListener.class

@@ -9,7 +9,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.2
+ *	Currently version: 3.3
  */
 
 public class BlockBreakListener implements Listener {

@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.2
+ *	Currently version: 3.3
  */
 
 public class Main extends JavaPlugin {
@@ -65,6 +65,7 @@ public class Main extends JavaPlugin {
     public void onDisable() {
         discord2FAManager.getArmorStands().values().forEach(Entity::remove);
         getServer().getScheduler().cancelTasks(this);
+        discord2FAManager.getCheckPlayers().forEach(player -> player.kickPlayer("§cServer closed or Discord2FA reloaded!"));
         if (provider != null)
             provider.saveDatabase();
         if (bot != null)

@@ -4,12 +4,8 @@ import io.github.eylexlive.discord2fa.Main;
 import io.github.eylexlive.discord2fa.event.AuthFailEvent;
 import io.github.eylexlive.discord2fa.runnable.CountdownRunnable;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.requests.RestAction;
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.ArmorStand;
@@ -19,11 +15,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.2
+ *	Currently version: 3.3
  */
 
 public class Discord2FAManager {
@@ -48,17 +43,18 @@ public class Discord2FAManager {
 
     public void addPlayerToCheck(Player player) {
         if (isInCheck(player)) return;
-
         checkPlayers.add(player);
         final String code = getRandomCode(ConfigUtil.getInt("code-lenght"));
 
         if (!ConfigUtil.getBoolean("generate-new-code-always")) {
-            if (checkCode.get(player.getUniqueId()) == null) setThenSend(player, code);
+            if (checkCode.get(player.getUniqueId()) == null) sendCode(player, code);
         } else {
-            setThenSend(player, code);
+            sendCode(player, code);
         }
 
         new BukkitRunnable() { @Override public void run() { sitPlayer(player); } }.runTaskLater(plugin, 10L);
+        player.sendMessage(getAuthMessage(true, -1));
+        new CountdownRunnable(player, plugin).runTaskTimer(plugin, 0L, 20L);
     }
     
     public void checkPlayer(Player player) {
@@ -74,10 +70,8 @@ public class Discord2FAManager {
                 }
             }
             addPlayerToCheck(player);
-            player.sendMessage(getAuthMessage(true, -1));
-            new CountdownRunnable(player, plugin).runTaskTimer(plugin, 0L, 20L);
         } else {
-            player.sendMessage("§4§l[Discord2FA|WARNING] §cHey! please check the console.");
+            if (player.isOp()) player.sendMessage("§4§l[Discord2FA|WARNING] §cHey! please check the console.");
             plugin.getLogger().warning("Ops, the bot connect failed. Please provide the bot connection.");
         }
     }
@@ -119,7 +113,7 @@ public class Discord2FAManager {
         }
     }
 
-    private void setThenSend(Player player, String code) {
+    private void sendCode(Player player, String code) {
         final String memberId = plugin.getProvider().getMemberID(player);
         checkCode.put(player.getUniqueId(), code);
 
@@ -140,8 +134,7 @@ public class Discord2FAManager {
         final int format = (bool ? 1 : 2);
 
         final String replaceKey = (bool ? "countdown" : "seconds");
-        final String replacementKey = (
-                bool ? String.valueOf(ConfigUtil.getInt("auth-countdown")) :
+        final String replacementKey = (bool ? String.valueOf(ConfigUtil.getInt("auth-countdown")) :
                         i +" second"+(i > 1 ? "s" : "")
         );
         return ConfigUtil.getString("messages.auth-message.format-" + format, replaceKey + ":" + replacementKey).split("%nl%");
@@ -167,13 +160,13 @@ public class Discord2FAManager {
 
     public void enable2FA(Player player, String message) {
         final String code = confirmCode.get(player.getUniqueId());
-        if (message.equals(code) && !code.equals("§")) {
+        if (message.equals(code)) {
             final User user = confirmUser.get(player.getUniqueId());
 
             plugin.getProvider().addToVerifyList(player, user.getId());
             player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-enabled"));
 
-            if (!sendLog(ConfigUtil.getString("authentication-for-players.successfully-confirmed"), Collections.singletonList(user)))
+            if (!sendLog(ConfigUtil.getString("authentication-for-players.successfully-confirmed"), user))
                 player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
 
             confirmCode.put(player.getUniqueId(), null);
@@ -231,7 +224,7 @@ public class Discord2FAManager {
         final String code = getRandomCode(ConfigUtil.getInt("code-lenght"));
         confirmCode.put(player.getUniqueId(), code);
 
-        if (!sendLog(ConfigUtil.getString("authentication-for-players.confirm-your-account", "nl:" + "\n", "code:" + code, "player:" + player.getName()), Collections.singletonList(user)))
+        if (!sendLog(ConfigUtil.getString("authentication-for-players.confirm-your-account", "nl:" + "\n", "code:" + code, "player:" + player.getName()), user))
             player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
 
         confirmUser.put(player.getUniqueId(), user);
@@ -252,19 +245,15 @@ public class Discord2FAManager {
         player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-timeout"));
     }
 
-    public boolean sendLog(String path, List<User> userList) {
+    public boolean sendLog(String path, User user) {
         final boolean[] successfullySent = {true};
-        userList.forEach(user ->  {
-           if (user == null)
-               return;
-            user.openPrivateChannel()
-                    .submit()
-                    .thenCompose(channel -> channel.sendMessage(path).submit())
-                    .exceptionally((error) -> {
-                        successfullySent[0] = false;
-                        return null;
-                    }).join();
-        });
+        user.openPrivateChannel()
+                .submit()
+                .thenCompose(channel -> channel.sendMessage(path).submit())
+                .exceptionally((error) -> {
+                    successfullySent[0] = false;
+                    return null;
+                }).join();
         return successfullySent[0];
     }
 
@@ -299,23 +288,17 @@ public class Discord2FAManager {
             armorStands.get(player).remove();
     }
 
-    public boolean isInCheck(Player player) {
-        return checkPlayers.contains(player);
-    }
+    public boolean isInCheck(Player player) { return checkPlayers.contains(player); }
 
-    public Map<UUID, Integer> getLeftRights() {
-        return leftRights;
-    }
+    public Map<UUID, Integer> getLeftRights() { return leftRights; }
 
-    public Map<UUID, String> getCheckCode() {
-        return checkCode;
-    }
+    public Map<UUID, String> getCheckCode() { return checkCode; }
 
     public Map<UUID, String> getConfirmCode() { return confirmCode; }
 
-    public Map<Player, ArmorStand> getArmorStands() {
-        return armorStands;
-    }
+    public List<Player> getCheckPlayers() { return checkPlayers; }
+
+    public Map<Player, ArmorStand> getArmorStands() { return armorStands; }
 
     private enum CodeType {
         NUMERIC,

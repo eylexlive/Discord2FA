@@ -9,6 +9,11 @@ mysql:
 
 bot-token: Your token here.
 
+bot-activity:
+  enabled: false
+  type: DEFAULT
+  value: 'Minecraft'
+
 auth-countdown: 60
 number-of-rights: 5
 rights-reached-console-command: 'tempban %player% 20m 2FA Failed'
@@ -128,11 +133,7 @@ messages:
     &f/discord2fa reloadConfig
     %nl% %nl%
     &8&m--------------------'
-    verifyList-message: '
-    &6&lVerify List&8:
-    %nl% %nl%
-    %list%
-    '
+    verifyList-message: ' &6&lVerify List&8: &f%list% '
     player-auth-enter-discord: '&8&l- &6Please enter your Discord in the following format &fName#Discrimintator'
     player-auth-confirm-code-sent: '&8&l- &6Please check your Discord direct messages! (direct messages must be enabled!)'
     player-auth-timeout: '&8&l- &6Confirmation timeout.'

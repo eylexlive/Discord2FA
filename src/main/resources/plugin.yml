@@ -3,10 +3,15 @@ version: ${project.version}
 author: EylexLive
 main: io.github.eylexlive.discord2fa.Main
 description: ${project.description}
-softdepend: [AuthMe, LoginSecurity]
+softdepend:
+  - AuthMe
+  - LoginSecurity
 
 commands:
   auth:
-    aliases: [dcauth]
+    aliases:
+      - dcauth
   discord2fa:
-    aliases: [dc2fa, dca]
+    aliases:
+      - dc2fa
+      - dca
