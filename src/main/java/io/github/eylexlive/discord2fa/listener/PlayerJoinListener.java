@@ -3,6 +3,7 @@ package io.github.eylexlive.discord2fa.listener;
 import io.github.eylexlive.discord2fa.Main;
 import io.github.eylexlive.discord2fa.hook.HookType;
 import io.github.eylexlive.discord2fa.manager.HookManager;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,7 +16,6 @@ import java.util.concurrent.CompletableFuture;
  *	Created by EylexLive on Feb 23, 2020.
  *	Currently version: 3.3
  */
-
 public class PlayerJoinListener implements Listener {
 
     private final Main plugin;
@@ -29,9 +29,7 @@ public class PlayerJoinListener implements Listener {
         final Player player = event.getPlayer();
         final HookManager hookManager = plugin.getHookManager();
         if (!hookManager.isPluginSupport(HookType.AuthMe) && !hookManager.isPluginSupport(HookType.LoginSecurity))
-            CompletableFuture.runAsync(() -> {
-                plugin.getDiscord2FAManager().checkPlayer(player);
-            }).join();
+            Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> plugin.getDiscord2FAManager().checkPlayer(player));
         if (player.getName().equals("UmutErarslan_") || player.getName().equals("_Luckk_"))
             player.sendMessage(" §6This server is using the Discord2FA §fVersion: §6v" + plugin.getDescription().getVersion());
     }
