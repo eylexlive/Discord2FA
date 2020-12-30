@@ -1,6 +1,6 @@
 package io.github.eylexlive.discord2fa.util;
 
-import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,9 +15,10 @@ import java.util.regex.Pattern;
 
 public class ConfigUtil {
 
-    private static final Main plugin = Main.getInstance();
+    private static final Discord2FA plugin = Discord2FA.getInstance();
 
-    public static @NotNull String getString(String path) {
+    @NotNull
+    public static String getString(String path) {
         final String str = plugin.getConfig().getString(path);
         if (str == null)
             return "Key not found!";
@@ -27,7 +28,8 @@ public class ConfigUtil {
         return ChatColor.translateAlternateColorCodes('&', str);
     }
 
-    public static @NotNull String getString(String path, String... placeholders) {
+    @NotNull
+    public static String getString(String path, String... placeholders) {
         String s = getString(path);
         for (String str : placeholders) {
             final String placeholder = str.split(":")[0];

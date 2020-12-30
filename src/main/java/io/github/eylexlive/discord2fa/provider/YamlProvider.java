@@ -1,9 +1,7 @@
 package io.github.eylexlive.discord2fa.provider;
 
-import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.event.AuthCompleteEvent;
-import io.github.eylexlive.discord2fa.file.Config;
-import io.github.eylexlive.discord2fa.manager.Discord2FAManager;
+import io.github.eylexlive.discord2fa.Discord2FA;
+import io.github.eylexlive.discord2fa.util.Config;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 
@@ -18,7 +16,7 @@ import java.util.List;
 
 public class YamlProvider extends Provider {
 
-    private final Main plugin = Main.getInstance();
+    private final Discord2FA plugin = Discord2FA.getInstance();
 
     private Config yaml;
 
@@ -53,26 +51,15 @@ public class YamlProvider extends Provider {
     @Override
     public void authPlayer(Player player) {
         yaml.set("verify." + player.getName() + ".ip", String.valueOf(player.getAddress().getAddress().getHostAddress()));
-
-        final Discord2FAManager discord2FAManager = plugin.getDiscord2FAManager();
-        discord2FAManager.removePlayerFromCheck(player);
-        discord2FAManager.getLeftRights().put(player.getUniqueId(), null);
-        discord2FAManager.getCheckCode().put(player.getUniqueId(), null);
-
-        plugin.getLogger().info(player.getName() + "'s account was authenticated!");
-        final List<String> adminIds = ConfigUtil.getStringList("logs.admin-ids");
-        if (ConfigUtil.getBoolean("logs.enabled"))
-            discord2FAManager.sendLog(adminIds, ConfigUtil.getString("logs.player-authenticated", "player:" + player.getName()));
-        plugin.getServer().getPluginManager().callEvent(new AuthCompleteEvent(player));
+        plugin.getDiscord2FAManager().completeAuth(player);
     }
 
     @Override
     public List<String> generateBackupCodes(Player player) {
         final StringBuilder codes = new StringBuilder();
+
         for (int i = 1; i <= 5; i++)
-            codes.append(plugin.getDiscord2FAManager().getRandomCode(
-                    ConfigUtil.getInt("code-lenght"))
-            ).append("-");
+            codes.append(plugin.getDiscord2FAManager().getRandomCode(ConfigUtil.getInt("code-lenght"))).append("-");
 
         yaml.set("verify."+ player.getName() +".backup-codes", codes.toString());
         return Arrays.asList(codes.toString().split("-"));
@@ -82,6 +69,7 @@ public class YamlProvider extends Provider {
     public void removeBackupCode(Player player, String code) {
         if (!isBackupCode(player, code))
             return;
+
         final String codeData = getData("verify." + player.getName() + ".backup-codes");
 
         if (codeData == null)
@@ -95,11 +83,6 @@ public class YamlProvider extends Provider {
             codes.append(c).append("-");
 
         yaml.set("verify." + player.getName() + ".backup-codes", codes.toString());
-    }
-
-    @Override
-    public boolean isBackupCodesGenerated(Player player) {
-        return getData("verify." + player.getName() + ".backup-codes") != null;
     }
 
     @Override

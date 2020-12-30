@@ -1,6 +1,6 @@
 package io.github.eylexlive.discord2fa.listener;
 
-import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,21 +14,20 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 public class PlayerInteractListener implements Listener {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    public PlayerInteractListener(Main plugin) {
+    public PlayerInteractListener(Discord2FA plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
     public void handleInteract(PlayerInteractEvent event) {
-        if (!ConfigUtil.getBoolean("canceled-events.player-interact.cancel"))
-            return;
         final Player player = event.getPlayer();
-        if (plugin.getDiscord2FAManager().isInCheck(player)) {
-            final boolean cancelled = !ConfigUtil.getStringList("canceled-events.player-interact.whitelisted-actions")
-                    .contains(event.getAction().name());
-            event.setCancelled(cancelled);
-        }
+        if (!ConfigUtil.getBoolean("canceled-events.player-interact.cancel") || !plugin.getDiscord2FAManager().isInCheck(player))
+            return;
+
+        final boolean cancelled = !ConfigUtil.getStringList("canceled-events.player-interact.whitelisted-actions")
+                .contains(event.getAction().name());
+        event.setCancelled(cancelled);
     }
 }

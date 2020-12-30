@@ -1,7 +1,6 @@
 package io.github.eylexlive.discord2fa.util;
 
-import io.github.eylexlive.discord2fa.Main;
-import org.jetbrains.annotations.NotNull;
+import io.github.eylexlive.discord2fa.Discord2FA;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,33 +15,33 @@ import java.net.URLConnection;
 
 public class UpdateCheck {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    public UpdateCheck(Main plugin) {
+    public UpdateCheck(Discord2FA plugin) {
         this.plugin = plugin;
     }
 
     public void checkUpdate() {
         if (!ConfigUtil.getBoolean("check-for-updates"))
             return;
-        System.out.println("-----------------------------");
-        System.out.println("     Discord2FA Updater     ");
-        System.out.println(" ");
-        System.out.println("v" + plugin.getDescription().getVersion() + " running now");
+        log("-----------------------------");
+        log("     Discord2FA Updater     ");
+        log(" ");
+        log("v" + plugin.getDescription().getVersion() + " running now");
         if (isAvailable()) {
-            System.out.println("A new update is available at");
-            System.out.println("spigotmc.org/resources/75451");
-            System.out.println(" ");
+            log("A new update is available at");
+            log("spigotmc.org/resources/75451");
+            log(" ");
         } else {
-            System.out.println("The last version of");
-            System.out.println("Discord2FA");
-            System.out.println(" ");
+            log("The last version of");
+            log("Discord2FA");
+            log(" ");
         }
-        System.out.println("-----------------------------");
+        log("-----------------------------");
     }
 
     private boolean isAvailable() {
-        String spigotPluginVersion = "Connection failed";
+        final String spigotPluginVersion;
         try {
             final URLConnection urlConnection = new URL(
                     "https://api.spigotmc.org/legacy/update.php?resource=75451"
@@ -51,9 +50,13 @@ public class UpdateCheck {
                     new InputStreamReader(
                             urlConnection.getInputStream())
             ).readLine();
-        } catch (IOException exception) {
-            exception.printStackTrace();
+        } catch (IOException e) {
+            return false;
         }
         return !plugin.getDescription().getVersion().equals(spigotPluginVersion);
     }
+    
+    private void log(String str) {
+        System.out.println(str);
+    } 
 }

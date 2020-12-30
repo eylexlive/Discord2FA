@@ -1,11 +1,11 @@
 package io.github.eylexlive.discord2fa.manager;
 
-import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.hook.HookType;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import io.github.eylexlive.discord2fa.hook.PluginHook;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
@@ -14,16 +14,30 @@ import java.util.Arrays;
 
 public class HookManager {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    public HookManager(Main plugin) {
+    private final Map<HookType, Boolean> hookMap = new HashMap<>();
+
+    public HookManager(Discord2FA plugin) {
         this.plugin = plugin;
-        Arrays.asList("Authme", "LoginSecurity").forEach(str -> new PluginHook(str, plugin, ConfigUtil.getBoolean(str.toLowerCase() + "-support")).execute());
+        registerHooks();
     }
 
-    public boolean isPluginSupport(HookType pluginName) {
-        final String name = pluginName.name().toLowerCase();
-        return (plugin.getServer().getPluginManager().getPlugin(name) != null) &&
-                ConfigUtil.getBoolean(name + "-support");
+    private void registerHooks() {
+        for (HookType hookType : HookType.values()) {
+            if (!ConfigUtil.getBoolean(hookType.name().toLowerCase() + "-support"))
+                continue;
+            final PluginHook pluginHook = new PluginHook(plugin, hookType).register();
+            hookMap.put(hookType, pluginHook.isHooked());
+        }
+    }
+
+    public boolean isAnyPluginHooked() {
+        return hookMap.values().stream().anyMatch(bool -> bool);
+    }
+
+    public enum HookType {
+        AuthMe,
+        LoginSecurity,
     }
 }

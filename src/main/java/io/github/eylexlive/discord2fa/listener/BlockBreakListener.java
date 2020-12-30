@@ -1,9 +1,11 @@
 package io.github.eylexlive.discord2fa.listener;
 
-import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
@@ -14,22 +16,20 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 public class BlockBreakListener implements Listener {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    public BlockBreakListener(Main plugin) {
+    public BlockBreakListener(Discord2FA plugin) {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void handleBlockBreak(BlockBreakEvent event) {
-        if (!ConfigUtil.getBoolean("canceled-events.block-break.cancel"))
-            return;
         final Player player= event.getPlayer();
-        if (plugin.getDiscord2FAManager().isInCheck(player)) {
-            final boolean cancelled = !ConfigUtil.getStringList("canceled-events.block-break.whitelisted-blocks")
-                    .contains(event.getBlock().getType().name());
-            event.setCancelled(cancelled);
-            if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.block-break-message"));
-        }
+        if (!ConfigUtil.getBoolean("canceled-events.block-break.cancel") || !plugin.getDiscord2FAManager().isInCheck(player))
+            return;
+        final boolean cancelled = !ConfigUtil.getStringList("canceled-events.block-break.whitelisted-blocks")
+                .contains(event.getBlock().getType().name());
+        event.setCancelled(cancelled);
+        if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.block-break-message"));
     }
 }

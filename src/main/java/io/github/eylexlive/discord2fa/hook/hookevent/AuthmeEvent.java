@@ -1,9 +1,7 @@
 package io.github.eylexlive.discord2fa.hook.hookevent;
 
 import fr.xephi.authme.events.LoginEvent;
-import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.hook.HookType;
-import org.bukkit.entity.Player;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -12,20 +10,17 @@ import org.bukkit.event.Listener;
  *	Currently version: 3.3
  */
 
-@Deprecated
-public class AuthmeEvent implements Listener {
+@SuppressWarnings("unused")
+public class AuthMeEvent implements Listener {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    public AuthmeEvent() {
-        this.plugin = Main.getInstance();
+    public AuthMeEvent() {
+        this.plugin = Discord2FA.getInstance();
     }
 
     @EventHandler
     public void handleAuthMeLogin(LoginEvent event) {
-        final Player player = event.getPlayer();
-        if (plugin.getHookManager().isPluginSupport(HookType.AuthMe))  {
-            plugin.getDiscord2FAManager().checkPlayer(player);
-        }
+        plugin.getDiscord2FAManager().checkPlayer(event.getPlayer());
     }
 }

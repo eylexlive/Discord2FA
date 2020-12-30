@@ -7,6 +7,7 @@ import io.github.eylexlive.discord2fa.manager.*;
 import io.github.eylexlive.discord2fa.provider.MySQLProvider;
 import io.github.eylexlive.discord2fa.provider.Provider;
 import io.github.eylexlive.discord2fa.provider.YamlProvider;
+import io.github.eylexlive.discord2fa.util.Config;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import io.github.eylexlive.discord2fa.util.Metrics;
 import io.github.eylexlive.discord2fa.util.UpdateCheck;
@@ -23,11 +24,13 @@ import java.util.concurrent.CompletableFuture;
  *	Currently version: 3.3
  */
 
-public class Main extends JavaPlugin {
+public class Discord2FA extends JavaPlugin {
 
-    private static Main instance;
+    private static Discord2FA instance;
 
     private Bot bot;
+
+    private Config config;
 
     private Discord2FAManager discord2FAManager;
     private HookManager hookManager;
@@ -36,12 +39,11 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        if (instance != null)
-            throw new IllegalStateException("Discord2FA already enabled!");
+        if (instance != null) throw new IllegalStateException("Discord2FA already enabled!");
+
         instance = this;
 
-        getConfig().options().copyDefaults(true);
-        saveConfig();
+        config = new Config("config");
 
         getCommand("auth").setExecutor(new AuthCommand(this));
         getCommand("discord2fa").setExecutor(new Discord2FACommand(this));
@@ -56,9 +58,7 @@ public class Main extends JavaPlugin {
 
         new Metrics(this);
         new UpdateCheck(this).checkUpdate();
-        CompletableFuture.runAsync(() -> {
-            bot = new Bot(ConfigUtil.getString("bot-token"), this).login();
-        }).join();
+        CompletableFuture.runAsync(() -> bot = new Bot(ConfigUtil.getString("bot-token"), this).login()).join();
     }
 
     @Override
@@ -66,10 +66,10 @@ public class Main extends JavaPlugin {
         discord2FAManager.getArmorStands().values().forEach(Entity::remove);
         getServer().getScheduler().cancelTasks(this);
         discord2FAManager.getCheckPlayers().forEach(player -> player.kickPlayer("§cServer closed or Discord2FA reloaded!"));
-        if (provider != null)
-            provider.saveDatabase();
-        if (bot != null)
-            bot.logout();
+
+        if (provider != null) provider.saveDatabase();
+
+        if (bot != null) bot.logout();
     }
 
     private void registerListeners() {
@@ -84,33 +84,46 @@ public class Main extends JavaPlugin {
                 new PlayerCommandUseListener(this),
                 new PlayerDropItemListener(this),
                 new PlayerInteractListener(this),
-                new PlayerJoinListener(this),
-                new EntityDismountListener(this),
-                new PlayerQuitListener(this)
+                new ConnectionListener(this),
+                new EntityDismountListener(this)
         ).forEach(listener -> pluginManager.registerEvents(listener, this));
     }
 
-    public static @NotNull Main getInstance() {
+    @NotNull
+    public static Discord2FA getInstance() {
         return instance;
     }
 
-    public @NotNull Provider getProvider() {
-        return provider;
+    @NotNull
+    public Bot getBot() {
+        return bot;
     }
 
-    public @NotNull Discord2FAManager getDiscord2FAManager() {
+    @NotNull
+    public Config getConfig() {
+        return config;
+    }
+
+    @NotNull
+    public Discord2FAManager getDiscord2FAManager() {
         return discord2FAManager;
     }
 
-    public @NotNull HookManager getHookManager() {
+    @NotNull
+    public HookManager getHookManager() {
         return hookManager;
+    }
+
+    @NotNull
+    public Provider getProvider() {
+        return provider;
+    }
+
+    public boolean isConnected() {
+        return bot.getJDA() != null;
     }
 
     public boolean isMySQLEnabled() {
         return ConfigUtil.getBoolean("mysql.enabled");
     }
-
-    public boolean isConnected() { return bot.getJDA() != null; }
-
-    public Bot getBot() { return bot; }
 }

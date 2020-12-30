@@ -1,7 +1,7 @@
 name: Discord2FA
 version: 3.3
 author: EylexLive
-main: io.github.eylexlive.discord2fa.Main
+main: io.github.eylexlive.discord2fa.Discord2FA
 description: 2FA plugin with Discord.
 softdepend:
   - AuthMe

@@ -21,11 +21,7 @@ public abstract class Provider {
 
     public abstract void authPlayer(Player player);
 
-    public abstract List<String> generateBackupCodes(Player player);
-
     public abstract void removeBackupCode(Player player, String code);
-
-    public abstract boolean isBackupCodesGenerated(Player player);
 
     public abstract boolean isBackupCode(Player player, String code);
 
@@ -36,5 +32,7 @@ public abstract class Provider {
     public abstract String getMemberID(Player player);
 
     public abstract String getListMessage();
+
+    public abstract List<String> generateBackupCodes(Player player);
 
 }

@@ -1,6 +1,6 @@
 package io.github.eylexlive.discord2fa.listener;
 
-import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,21 +14,20 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 
 public class InventoryOpenListener implements Listener {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    public InventoryOpenListener(Main plugin) {
+    public InventoryOpenListener(Discord2FA plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
     public void handleInvOpen(InventoryOpenEvent event) {
-        if (!ConfigUtil.getBoolean("canceled-events.inventory-open.cancel"))
-            return;
         final Player player = (Player) event.getPlayer();
-        if (plugin.getDiscord2FAManager().isInCheck(player)) {
-            final boolean cancelled = !ConfigUtil.getStringList("canceled-events.inventory-open.whitelisted-inventory-types")
-                    .contains(event.getInventory().getType().name());
-            event.setCancelled(cancelled);
-        }
+        if (!ConfigUtil.getBoolean("canceled-events.inventory-open.cancel") || !plugin.getDiscord2FAManager().isInCheck(player))
+            return;
+
+        final boolean cancelled = !ConfigUtil.getStringList("canceled-events.inventory-open.whitelisted-inventory-types")
+                .contains(event.getInventory().getType().name());
+        event.setCancelled(cancelled);
     }
 }

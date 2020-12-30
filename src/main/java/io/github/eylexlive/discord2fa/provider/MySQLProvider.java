@@ -1,8 +1,6 @@
 package io.github.eylexlive.discord2fa.provider;
 
-import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.event.AuthCompleteEvent;
-import io.github.eylexlive.discord2fa.manager.Discord2FAManager;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 
@@ -20,7 +18,7 @@ import java.util.logging.Logger;
 
 public class MySQLProvider extends Provider {
 
-    private final Main plugin = Main.getInstance();
+    private final Discord2FA plugin = Discord2FA.getInstance();
 
     private Connection connection;
 
@@ -40,7 +38,7 @@ public class MySQLProvider extends Provider {
         return null;
     }
 
-    @Override
+   @Override
     public void setupDatabase() {
         final Logger logger = plugin.getLogger();
         try {
@@ -59,8 +57,11 @@ public class MySQLProvider extends Provider {
             logger.info("[MySQL] Successfully connected to the database!");
 
             final Statement statement = getConnection().createStatement();
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `" + "2fa_backup" + "`(`player` TEXT, `codes` VARCHAR(" + (ConfigUtil.getInt("code-lenght") * 10 + 10)+"))");
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `" + "2fa" + "`(`player` TEXT, `discord` VARCHAR(60), `ip` TEXT)");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS `" + "2fa_backup" + "`(`player` TEXT, `codes` VARCHAR(" + (ConfigUtil.getInt("code-lenght") * 10 + 10)+"))");
+
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS `" + "2fa" + "`(`player` TEXT, `discord` VARCHAR(60), `ip` TEXT)");
         } catch (SQLException e) {
             logger.warning("[MySQL] Connection to database failed!");
             logger.warning("[MySQL] Please make sure that details in config.yml are correct.");
@@ -117,29 +118,17 @@ public class MySQLProvider extends Provider {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        final Discord2FAManager discord2FAManager = plugin.getDiscord2FAManager();
-        discord2FAManager.removePlayerFromCheck(player);
-        discord2FAManager.getLeftRights().put(player.getUniqueId(), null);
-        discord2FAManager.getCheckCode().put(player.getUniqueId(), null);
-
-        plugin.getLogger().info(player.getName() + "'s account was authenticated!");
-        final List<String> adminIds = ConfigUtil.getStringList("logs.admin-ids");
-        if (ConfigUtil.getBoolean("logs.enabled"))
-            discord2FAManager.sendLog(adminIds, ConfigUtil.getString("logs.player-authenticated", "player:" + player.getName()));
-        plugin.getServer().getPluginManager().callEvent(new AuthCompleteEvent(player));
+        plugin.getDiscord2FAManager().completeAuth(player);
     }
 
     @Override
     public List<String> generateBackupCodes(Player player) {
         final StringBuilder codes = new StringBuilder();
         for (int i = 1; i <= 5; i++)
-            codes.append(plugin.getDiscord2FAManager().getRandomCode(
-                    ConfigUtil.getInt("code-lenght"))
-            ).append("-");
+            codes.append(plugin.getDiscord2FAManager().getRandomCode(ConfigUtil.getInt("code-lenght"))).append("-");
 
         final PreparedStatement statement;
-        if (!isBackupCodesGenerated(player)) {
+        if (getData(player,"codes","2fa_backup") == null) {
             try {
                 statement = getConnection().prepareStatement(
                         "INSERT INTO `2fa_backup` (player, codes)" + "VALUES " + "(?, ?);");
@@ -149,6 +138,7 @@ public class MySQLProvider extends Provider {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
         } else {
             try {
                 statement = getConnection().prepareStatement(
@@ -188,11 +178,6 @@ public class MySQLProvider extends Provider {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public boolean isBackupCodesGenerated(Player player) {
-        return getData(player,"codes","2fa_backup") != null;
     }
 
     @Override

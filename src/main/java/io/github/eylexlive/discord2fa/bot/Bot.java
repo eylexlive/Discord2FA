@@ -1,7 +1,6 @@
 package io.github.eylexlive.discord2fa.bot;
 
-import io.github.eylexlive.discord2fa.Main;
-import io.github.eylexlive.discord2fa.file.Config;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
@@ -9,7 +8,6 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.jetbrains.annotations.NotNull;
 
 import javax.security.auth.login.LoginException;
@@ -22,13 +20,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class Bot {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
     private final String token;
 
     private JDA jda = null;
 
-    public Bot(String token, Main plugin) {
+    public Bot(String token, Discord2FA plugin) {
         this.token = token;
         this.plugin = plugin;
     }
@@ -52,12 +50,6 @@ public class Bot {
             if (activityEntry.isEnabled())
                 jda.getPresence().setActivity(Activity.of(activityEntry.getType(), activityEntry.getValue()));
 
-            try {
-                jda.awaitReady();
-            } catch (InterruptedException e) {
-                plugin.getLogger().warning("Connection failed! Please restart the server!");
-            }
-
         } catch (LoginException e) {
             plugin.getLogger().severe("Bot failed to connect..!");
             plugin.getLogger().severe("Error cause: " + e.getLocalizedMessage());
@@ -76,6 +68,10 @@ public class Bot {
             });
             jda.shutdownNow();
         }
+    }
+
+    public JDA getJDA() {
+        return jda;
     }
 
     private class ActivityEntry {
@@ -99,9 +95,5 @@ public class Bot {
         public boolean isEnabled() {
             return ConfigUtil.getBoolean("bot-activity.enabled");
         }
-    }
-
-    public JDA getJDA() {
-        return jda;
     }
 }

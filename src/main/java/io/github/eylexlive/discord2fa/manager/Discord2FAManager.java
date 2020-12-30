@@ -1,8 +1,11 @@
 package io.github.eylexlive.discord2fa.manager;
 
-import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.Discord2FA;
+import io.github.eylexlive.discord2fa.data.PlayerData;
+import io.github.eylexlive.discord2fa.event.AuthCompleteEvent;
 import io.github.eylexlive.discord2fa.event.AuthFailEvent;
-import io.github.eylexlive.discord2fa.runnable.CountdownRunnable;
+import io.github.eylexlive.discord2fa.task.Cancel2FAReqTask;
+import io.github.eylexlive.discord2fa.task.CountdownTask;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import net.dv8tion.jda.api.entities.User;
 import org.apache.commons.lang.RandomStringUtils;
@@ -23,110 +26,161 @@ import java.util.*;
 
 public class Discord2FAManager {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    private final Map<UUID, String> checkCode = new HashMap<>();
-    private final Map<UUID, String> confirmCode = new HashMap<>();
-
-    private final Map<UUID, Integer> playerTasks = new HashMap<>();
-    private final Map<UUID, Integer> leftRights = new HashMap<>();
-
-    private final Map<UUID, User> confirmUser = new HashMap<>();
+    private final Map<UUID, PlayerData> players = new HashMap<>();
 
     private final Map<Player, ArmorStand> armorStands = new HashMap<>();
 
-    private final List<Player> checkPlayers = new ArrayList<>();
+    private final Set<Player> checkPlayers = new HashSet<>();
 
-    public Discord2FAManager(Main plugin) {
+    public Discord2FAManager(Discord2FA plugin) {
         this.plugin = plugin;
     }
 
+    public PlayerData loadData(Player player) {
+        final UUID uuid = player.getUniqueId();
+
+        if (getPlayerData(uuid) != null)
+            return getPlayerData(uuid);
+
+        final PlayerData data = new PlayerData(uuid);
+
+        players.put(data.getUuid(), data);
+        return data;
+    }
+
+    public void unloadData(Player player) {
+        players.remove(player.getUniqueId());
+    }
+
+    public PlayerData getPlayerData(Player player) {
+      if (getPlayerData(player.getUniqueId()) == null)
+          return loadData(player);
+      return players.get(player.getUniqueId());
+    }
+
+    public PlayerData getPlayerData(UUID uuid) {
+        return players.get(uuid);
+    }
+
     public void addPlayerToCheck(Player player) {
-        if (isInCheck(player)) return;
+        if (isInCheck(player))
+            return;
+
         checkPlayers.add(player);
+
         final String code = getRandomCode(ConfigUtil.getInt("code-lenght"));
+        final PlayerData playerData =loadData(player);
 
         if (!ConfigUtil.getBoolean("generate-new-code-always")) {
-            if (checkCode.get(player.getUniqueId()) == null) sendCode(player, code);
+            if (playerData.getCheckCode() == null) sendCode(player, code);
         } else {
             sendCode(player, code);
         }
 
         new BukkitRunnable() { @Override public void run() { sitPlayer(player); } }.runTaskLater(plugin, 10L);
+
         player.sendMessage(getAuthMessage(true, -1));
-        new CountdownRunnable(player, plugin).runTaskTimer(plugin, 0L, 20L);
+        new CountdownTask(this, player).runTaskTimer(plugin, 0L, 20L);
     }
-    
+
+    public void removePlayerFromCheck(Player player) {
+        if (!isInCheck(player))
+            return;
+
+        checkPlayers.remove(player);
+        unSitPlayer(player);
+
+        final PlayerData playerData = getPlayerData(player);
+
+        if (playerData.getCheckCode() != null
+                && ConfigUtil.getBoolean("generate-new-code-always")) {
+            playerData.setCheckCode(null);
+        }
+    }
+
     public void checkPlayer(Player player) {
-        if (plugin.isConnected()) {
-            if (!plugin.getProvider().playerExits(player)) return;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            final boolean playerExits = plugin.getProvider().playerExits(player);
+            if (!plugin.isConnected()) {
+                if (playerExits) player.sendMessage("§4§[lDiscord2FA] §cHey! The bot connection must be provided to we send a code.");
+                plugin.getLogger().warning("Ops, the bot connect failed. Please provide the bot connection.");
+                return;
+            }
+
+            if (!playerExits)
+                return;
 
             if (ConfigUtil.getBoolean("auto-verification")) {
                 final String currentlyIp = player.getAddress().getAddress().getHostAddress();
                 final String lastIp = plugin.getProvider().getIP(player);
+
                 if (currentlyIp.equals(lastIp)) {
                     player.sendMessage(ConfigUtil.getString("messages.auto-verify-success-message"));
                     return;
                 }
             }
             addPlayerToCheck(player);
-        } else {
-            if (player.isOp()) player.sendMessage("§4§l[Discord2FA|WARNING] §cHey! please check the console.");
-            plugin.getLogger().warning("Ops, the bot connect failed. Please provide the bot connection.");
-        }
+        });
     }
 
-    public void failPlayer(Player player) {
-        final Server server = plugin.getServer();
-        leftRights.put(player.getUniqueId(), ConfigUtil.getInt("number-of-rights"));
-        server.dispatchCommand(server.getConsoleSender(), ConfigUtil.getString("rights-reached-console-command", "player:" + player.getName()));
-        final List<String> adminIds = ConfigUtil.getStringList("logs.admin-ids");
+    public void completeAuth(Player player) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            if (!isInCheck(player))
+                return;
 
-        if (ConfigUtil.getBoolean("logs.enabled"))
-            if (!sendLog(adminIds, ConfigUtil.getString("logs.player-reached-limit", "player:" + player.getName()))) {
-                player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
-            }
-        plugin.getServer().getPluginManager().callEvent(new AuthFailEvent(player));
-    }
+            checkPlayers.remove(player);
 
-    public void failPlayer(Player player, int rightSize) {
-        leftRights.put(player.getUniqueId(), leftRights.get(player.getUniqueId()) - rightSize);
+            unSitPlayer(player);
+            unloadData(player);
 
-        player.sendMessage(ConfigUtil.getString("messages.auth-command.invalid-code-message", "rights:" + leftRights.get(player.getUniqueId())));
-        final List<String> adminIds = ConfigUtil.getStringList("logs.admin-ids");
+            if (ConfigUtil.getBoolean("logs.enabled")) sendLog(ConfigUtil.getStringList("logs.admin-ids"), ConfigUtil.getString("logs.player-authenticated", "player:" + player.getName()));
 
-        if (ConfigUtil.getBoolean("logs.enabled"))
-           if (!sendLog(adminIds, ConfigUtil.getString("logs.player-entered-wrong-code", "player:" + player.getName(), "left:" + leftRights.get(player.getUniqueId())))) {
-               player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
-           }
-    }
-
-    public void removePlayerFromCheck(Player player) {
-        if (!isInCheck(player)) return;
-
-        checkPlayers.remove(player);
-        unSitPlayer(player);
-
-        if (checkCode.get(player.getUniqueId()) != null
-                && ConfigUtil.getBoolean("generate-new-code-always")) {
-            checkCode.put(player.getUniqueId(), null);
-        }
+            plugin.getLogger().info(player.getName() + "'s account was authenticated!");
+        });
+        plugin.getServer().getPluginManager().callEvent(new AuthCompleteEvent(player));
     }
 
     private void sendCode(Player player, String code) {
+        final PlayerData playerData = getPlayerData(player);
         final String memberId = plugin.getProvider().getMemberID(player);
-        checkCode.put(player.getUniqueId(), code);
+        playerData.setCheckCode(code);
 
         if (memberId == null) {
             plugin.getLogger().warning("We're cannot get player's Discord ID?");
             return;
         }
 
-        if (leftRights.get(player.getUniqueId()) == null)
-            leftRights.put(player.getUniqueId(), ConfigUtil.getInt("number-of-rights"));
+        if (playerData.getLeftRights() == 0) playerData.setLeftRights(ConfigUtil.getInt("number-of-rights"));
 
-        if (!sendLog(Collections.singletonList(memberId), ConfigUtil.getString("messages.discord-message", "code:" + checkCode.get(player.getUniqueId()))))
+        if (!sendLog(Collections.singletonList(memberId), ConfigUtil.getString("messages.discord-message", "code:" + playerData.getCheckCode())))
             player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
+    }
+
+    public void failPlayer(Player player) {
+        final Server server = plugin.getServer();
+
+        getPlayerData(player).setLeftRights(ConfigUtil.getInt("number-of-rights"));
+        server.dispatchCommand(server.getConsoleSender(), ConfigUtil.getString("rights-reached-console-command", "player:" + player.getName()));
+
+        if (ConfigUtil.getBoolean("logs.enabled"))
+            if (!sendLog(ConfigUtil.getStringList("logs.admin-ids"), ConfigUtil.getString("logs.player-reached-limit", "player:" + player.getName()))) {
+                player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
+            }
+        plugin.getServer().getPluginManager().callEvent(new AuthFailEvent(player));
+    }
+
+    public void failPlayer(Player player, int i) {
+        final PlayerData playerData = getPlayerData(player);
+        playerData.setLeftRights(playerData.getLeftRights() - i);
+
+        player.sendMessage(ConfigUtil.getString("messages.auth-command.invalid-code-message", "rights:" + playerData.getLeftRights()));
+
+        if (ConfigUtil.getBoolean("logs.enabled"))
+            if (!sendLog(ConfigUtil.getStringList("logs.admin-ids"), ConfigUtil.getString("logs.player-entered-wrong-code", "player:" + player.getName(), "left:" + playerData.getLeftRights()))) {
+                player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
+            }
     }
 
     public String[] getAuthMessage(boolean state, int i) {
@@ -158,10 +212,11 @@ public class Discord2FAManager {
         return null;
     }
 
-    public void enable2FA(Player player, String message) {
-        final String code = confirmCode.get(player.getUniqueId());
-        if (message.equals(code)) {
-            final User user = confirmUser.get(player.getUniqueId());
+    public void enable2FA(Player player, String str) {
+        final PlayerData playerData = getPlayerData(player);
+        final String code = playerData.getConfirmCode();
+        if (str.equals(code)) {
+            final User user = playerData.getConfirmUser();
 
             plugin.getProvider().addToVerifyList(player, user.getId());
             player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-enabled"));
@@ -169,14 +224,9 @@ public class Discord2FAManager {
             if (!sendLog(ConfigUtil.getString("authentication-for-players.successfully-confirmed"), user))
                 player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
 
-            confirmCode.put(player.getUniqueId(), null);
-            confirmUser.put(player.getUniqueId(), null);
-
-            final Integer taskID = playerTasks.get(player.getUniqueId());
-            if (taskID != null)
-                Bukkit.getScheduler().cancelTask(taskID);
-
-            playerTasks.put(player.getUniqueId(), null);
+            final int taskID = playerData.getPlayerTaskID();
+            if (taskID != 0) Bukkit.getScheduler().cancelTask(taskID);
+            unloadData(player);
         }
     }
 
@@ -196,19 +246,21 @@ public class Discord2FAManager {
             return;
         }
 
-        final String confCode = confirmCode.get(player.getUniqueId());
+        final PlayerData playerData = getPlayerData(player);
+        final String confCode = playerData.getConfirmCode();
+
         if (confCode != null && confCode.equals("§"))
             return;
 
-        confirmCode.put(player.getUniqueId(), "§");
+        playerData.setConfirmCode("§");
         player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-enter-discord"));
 
-        final BukkitTask task = new BukkitRunnable() { @Override public void run() { final String code = confirmCode.get(player.getUniqueId());if (code != null && code.equals("§")) cancel2FAReq(player); }}.runTaskLater(plugin, 20 * 30L);
-        playerTasks.put(player.getUniqueId(), task.getTaskId());
+        final BukkitTask task = new Cancel2FAReqTask(this, player, true).runTaskLater(plugin, 20 * 30L);
+        playerData.setPlayerTaskID(task.getTaskId());
     }
 
-    public void sendConfirmCode(Player player, String message) {
-        final String[] split = message.split("#");
+    public void sendConfirmCode(Player player, String str) {
+        final String[] split = str.split("#");
         final User user;
 
         if (split.length == 2)
@@ -221,27 +273,25 @@ public class Discord2FAManager {
             return;
         }
 
+        final PlayerData playerData = getPlayerData(player);
         final String code = getRandomCode(ConfigUtil.getInt("code-lenght"));
-        confirmCode.put(player.getUniqueId(), code);
+        playerData.setConfirmCode(code);
 
         if (!sendLog(ConfigUtil.getString("authentication-for-players.confirm-your-account", "nl:" + "\n", "code:" + code, "player:" + player.getName()), user))
             player.sendMessage(ConfigUtil.getString("messages.msg-send-failed"));
 
-        confirmUser.put(player.getUniqueId(), user);
+        playerData.setConfirmUser(user);
         player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-confirm-code-sent"));
 
-        final Integer taskID = playerTasks.get(player.getUniqueId());
-        if (taskID != null)
-            Bukkit.getScheduler().cancelTask(taskID);
+        final int taskID = playerData.getPlayerTaskID();
+        if (taskID != 0) Bukkit.getScheduler().cancelTask(taskID);
 
-        final BukkitTask task = new BukkitRunnable() { @Override public void run() { final String code = confirmCode.get(player.getUniqueId());if (code != null && !code.equals("§")) cancel2FAReq(player); }}.runTaskLater(plugin, 20 * 30L);
-        playerTasks.put(player.getUniqueId(), task.getTaskId());
+        final BukkitTask task = new Cancel2FAReqTask(this, player, false).runTaskLater(plugin, 20 * 30L);
+        playerData.setPlayerTaskID(task.getTaskId());
     }
 
-    private void cancel2FAReq(Player player) {
-        confirmCode.put(player.getUniqueId(), null);
-        confirmUser.put(player.getUniqueId(), null);
-        playerTasks.put(player.getUniqueId(), null);
+    public void cancel2FAReq(Player player) {
+        unloadData(player);
         player.sendMessage(ConfigUtil.getString("messages.discord2fa-command.player-auth-timeout"));
     }
 
@@ -274,6 +324,7 @@ public class Discord2FAManager {
         return successfullySent[0];
     }
 
+
     public void sitPlayer(Player player) {
         final ArmorStand armorStand = (ArmorStand) Objects.requireNonNull(
                 player.getLocation().getWorld()).spawnEntity(player.getLocation(), EntityType.ARMOR_STAND
@@ -288,17 +339,17 @@ public class Discord2FAManager {
             armorStands.get(player).remove();
     }
 
-    public boolean isInCheck(Player player) { return checkPlayers.contains(player); }
+    public boolean isInCheck(Player player) {
+        return checkPlayers.contains(player);
+    }
 
-    public Map<UUID, Integer> getLeftRights() { return leftRights; }
+    public Set<Player> getCheckPlayers() {
+        return checkPlayers;
+    }
 
-    public Map<UUID, String> getCheckCode() { return checkCode; }
-
-    public Map<UUID, String> getConfirmCode() { return confirmCode; }
-
-    public List<Player> getCheckPlayers() { return checkPlayers; }
-
-    public Map<Player, ArmorStand> getArmorStands() { return armorStands; }
+    public Map<Player, ArmorStand> getArmorStands() {
+        return armorStands;
+    }
 
     private enum CodeType {
         NUMERIC,

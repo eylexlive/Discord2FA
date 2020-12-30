@@ -1,6 +1,8 @@
 package io.github.eylexlive.discord2fa.hook;
 
-import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.Discord2FA;
+import io.github.eylexlive.discord2fa.manager.HookManager;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 
 import java.util.logging.Logger;
@@ -12,32 +14,41 @@ import java.util.logging.Logger;
 
 public class PluginHook {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    private final String pluginName;
-    private final boolean enabled;
+    private final HookManager.HookType hookType;
 
-    public PluginHook(String pluginName, Main plugin, boolean enabled) {
-        this.pluginName = pluginName;
-        this.enabled = enabled;
+    private boolean hooked = false;
+
+    public PluginHook(Discord2FA plugin, HookManager.HookType hookType) {
         this.plugin = plugin;
+        this.hookType = hookType;
     }
 
-    public void execute() {
-        if (!enabled) return;
-
+    public PluginHook register() {
         final Logger logger = plugin.getLogger();
-        logger.info("Hooking into " + pluginName);
-
         final PluginManager pluginManager = plugin.getServer().getPluginManager();
-        if (pluginManager.getPlugin(pluginName) == null) {
-            logger.warning("ERROR: There was an error hooking into " + pluginName + "!");
-            return;
+
+        logger.info("Hooking into " + hookType.name());
+
+        if (pluginManager.getPlugin(hookType.name()) == null) {
+            logger.warning("ERROR: There was an error hooking into " + hookType.name() + "!");
+            return this;
         }
 
-        final HookListener hookListener = new HookListener("io.github.eylexlive.discord2fa.hook.hookevent." + pluginName + "Event");
-        pluginManager.registerEvents(hookListener.getListener(), plugin);
+        try {
+            final Class<Listener> listenerClass = (Class<Listener>) Class.forName("io.github.eylexlive.discord2fa.hook.hookevent." + hookType.name() + "Event");
+            pluginManager.registerEvents(listenerClass.newInstance(), plugin);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            return this;
+        }
 
-        logger.info("Hooked into " + pluginName);
+        hooked = true;
+        logger.info("Hooked into " + hookType.name());
+        return this;
+    }
+
+    public boolean isHooked() {
+        return hooked;
     }
 }

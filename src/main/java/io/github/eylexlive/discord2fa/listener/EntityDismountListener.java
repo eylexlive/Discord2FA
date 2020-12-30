@@ -1,11 +1,10 @@
 package io.github.eylexlive.discord2fa.listener;
 
-import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
@@ -16,21 +15,20 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 
 public class EntityDismountListener implements Listener {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    public EntityDismountListener(Main plugin) {
+    public EntityDismountListener(Discord2FA plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
     public void handleEntityDismount(EntityDismountEvent event) {
-        if (event.getEntity() instanceof Player) {
+        if (event.getEntity() instanceof Player && event.getDismounted() instanceof ArmorStand) {
             final Player player = (Player) event.getEntity();
-            if (event.getDismounted() instanceof ArmorStand) {
-                final ArmorStand armorStand = (ArmorStand) event.getDismounted();
-                if (plugin.getDiscord2FAManager().isInCheck(player) && plugin.getDiscord2FAManager().getArmorStands().get(player).getUniqueId().toString().equals(armorStand.getUniqueId().toString())) {
-                    event.setCancelled(true);
-                }
+            final ArmorStand armorStand = (ArmorStand) event.getDismounted();
+            if (plugin.getDiscord2FAManager().isInCheck(player) &&
+                    plugin.getDiscord2FAManager().getArmorStands().get(player) == armorStand) {
+                event.setCancelled(true);
             }
         }
     }

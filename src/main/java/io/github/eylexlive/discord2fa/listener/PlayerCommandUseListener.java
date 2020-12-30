@@ -1,6 +1,6 @@
 package io.github.eylexlive.discord2fa.listener;
 
-import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,23 +15,22 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 public class PlayerCommandUseListener implements Listener {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    public PlayerCommandUseListener(Main plugin) {
+    public PlayerCommandUseListener(Discord2FA plugin) {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler (priority = EventPriority.LOWEST)
     public void handleCommandPreProcess(PlayerCommandPreprocessEvent event) {
-        if (!ConfigUtil.getBoolean("canceled-events.command-use.cancel"))
-            return;
         final Player player= event.getPlayer();
-        if (plugin.getDiscord2FAManager().isInCheck(player)) {
-            final String[] commandArguments = event.getMessage().split(" ");
-            final boolean cancelled = !ConfigUtil.getStringList("canceled-events.command-use.whitelisted-commands")
-                    .contains(commandArguments[0].replaceFirst("/", ""));
-            event.setCancelled(cancelled);
-            if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.command-use-message"));
-        }
+        if (!ConfigUtil.getBoolean("canceled-events.command-use.cancel") || !plugin.getDiscord2FAManager().isInCheck(player))
+            return;
+
+        final String[] commandArguments = event.getMessage().split(" ");
+        final boolean cancelled = !ConfigUtil.getStringList("canceled-events.command-use.whitelisted-commands")
+                .contains(commandArguments[0].replaceFirst("/", ""));
+        event.setCancelled(cancelled);
+        if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.command-use-message"));
     }
 }

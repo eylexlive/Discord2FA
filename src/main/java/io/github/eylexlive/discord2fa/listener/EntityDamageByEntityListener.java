@@ -1,6 +1,6 @@
 package io.github.eylexlive.discord2fa.listener;
 
-import io.github.eylexlive.discord2fa.Main;
+import io.github.eylexlive.discord2fa.Discord2FA;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -15,9 +15,9 @@ import org.bukkit.projectiles.ProjectileSource;
 
 public class EntityDamageByEntityListener implements Listener {
 
-    private final Main plugin;
+    private final Discord2FA plugin;
 
-    public EntityDamageByEntityListener(Main plugin) {
+    public EntityDamageByEntityListener(Discord2FA plugin) {
         this.plugin = plugin;
     }
 
