@@ -12,6 +12,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
@@ -35,6 +37,7 @@ public class AuthCommand implements CommandExecutor {
         final Provider provider = plugin.getProvider();
 
         final Player player = (Player) sender;
+
         if (!provider.playerExits(player)) {
             player.sendMessage("§cYou cannot do this yet...");
             return true;

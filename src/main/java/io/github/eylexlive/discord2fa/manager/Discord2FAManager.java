@@ -18,6 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
@@ -296,19 +297,21 @@ public class Discord2FAManager {
     }
 
     public boolean sendLog(String path, User user) {
-        final boolean[] successfullySent = {true};
+        final boolean[] bool = {true};
+        if (user == null)
+            return false;
         user.openPrivateChannel()
                 .submit()
                 .thenCompose(channel -> channel.sendMessage(path).submit())
-                .exceptionally((error) -> {
-                    successfullySent[0] = false;
-                    return null;
-                }).join();
-        return successfullySent[0];
+                .whenComplete((message, error) -> {
+                    if (error != null)
+                        bool[0] = false;
+                });
+        return bool[0];
     }
 
     public boolean sendLog(List<String> stringList, String path) {
-        final boolean[] successfullySent = {true};
+        final boolean[] bool = {true};
         stringList.forEach(id ->  {
             final User user = plugin.getBot().getJDA().getUserById(id);
             if (user == null)
@@ -316,14 +319,13 @@ public class Discord2FAManager {
             user.openPrivateChannel()
                     .submit()
                     .thenCompose(channel -> channel.sendMessage(path).submit())
-                    .exceptionally((error) -> {
-                        successfullySent[0] = false;
-                        return null;
-                    }).join();
+                    .whenComplete((message, error) -> {
+                        if (error != null)
+                            bool[0] = false;
+                    });
         });
-        return successfullySent[0];
+        return bool[0];
     }
-
 
     public void sitPlayer(Player player) {
         final ArmorStand armorStand = (ArmorStand) Objects.requireNonNull(
