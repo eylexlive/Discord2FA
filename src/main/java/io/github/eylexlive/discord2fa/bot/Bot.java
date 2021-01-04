@@ -15,46 +15,47 @@ import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class Bot {
 
     private final Discord2FA plugin;
 
-    private final String token;
-
     private JDA jda = null;
 
-    public Bot(String token, Discord2FA plugin) {
-        this.token = token;
+    public Bot(Discord2FA plugin) {
         this.plugin = plugin;
     }
 
-    public Bot login() {
-        if (token != null && token.equals("Your token here.")) {
+    public void login() {
+        final String token = ConfigUtil.getString("bot-token");
+        if (token.equals("Your token here.")) {
             plugin.getLogger().warning("Please put your bot's token in config.");
-            return this;
+            return;
         }
 
-        if (jda != null)
-            jda.shutdown();
+        CompletableFuture.runAsync(() -> {
 
-        try {
-            final ActivityEntry activityEntry = new ActivityEntry();
-            jda = new JDABuilder(AccountType.BOT)
-                    .setToken(token)
-                    .setAutoReconnect(true)
-                    .build();
+            if (jda != null)
+                jda.shutdown();
 
-            if (activityEntry.isEnabled())
-                jda.getPresence().setActivity(Activity.of(activityEntry.getType(), activityEntry.getValue()));
+            try {
+                final ActivityEntry activityEntry = new ActivityEntry();
+                jda = new JDABuilder(AccountType.BOT)
+                        .setToken(token)
+                        .setAutoReconnect(true)
+                        .build();
 
-        } catch (LoginException e) {
-            plugin.getLogger().severe("Bot failed to connect..!");
-            plugin.getLogger().severe("Error cause: " + e.getLocalizedMessage());
-        }
-        return this;
+                if (activityEntry.isEnabled())
+                    jda.getPresence().setActivity(Activity.of(activityEntry.getType(), activityEntry.getValue()));
+
+            } catch (LoginException e) {
+                plugin.getLogger().severe("Bot failed to connect..!");
+                plugin.getLogger().severe("Error cause: " + e.getLocalizedMessage());
+            }
+        });
+
     }
 
     public void logout() {

@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class PlayerDropItemListener implements Listener {

@@ -10,7 +10,7 @@ import java.net.URLConnection;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class UpdateCheck {
@@ -19,15 +19,18 @@ public class UpdateCheck {
 
     public UpdateCheck(Discord2FA plugin) {
         this.plugin = plugin;
+        checkUpdate();
     }
 
-    public void checkUpdate() {
+    private void checkUpdate() {
         if (!ConfigUtil.getBoolean("check-for-updates"))
             return;
+
         log("-----------------------------");
         log("     Discord2FA Updater     ");
         log(" ");
         log("v" + plugin.getDescription().getVersion() + " running now");
+
         if (isAvailable()) {
             log("A new update is available at");
             log("spigotmc.org/resources/75451");

@@ -17,11 +17,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class Discord2FA extends JavaPlugin {
@@ -53,12 +52,19 @@ public class Discord2FA extends JavaPlugin {
         discord2FAManager = new Discord2FAManager(this);
         hookManager = new HookManager(this);
 
-        provider = isMySQLEnabled() ? new MySQLProvider() : new YamlProvider();
+        provider = (
+                isMYSQLEnabled() ? new MySQLProvider(this)
+                        :
+                        new YamlProvider(this)
+        );
         provider.setupDatabase();
 
         new Metrics(this);
-        new UpdateCheck(this).checkUpdate();
-        CompletableFuture.runAsync(() -> bot = new Bot(ConfigUtil.getString("bot-token"), this).login()).join();
+        new UpdateCheck(this);
+
+        bot = new Bot(this);
+        bot.login();
+
     }
 
     @Override
@@ -86,7 +92,9 @@ public class Discord2FA extends JavaPlugin {
                 new PlayerInteractListener(this),
                 new ConnectionListener(this),
                 new EntityDismountListener(this)
-        ).forEach(listener -> pluginManager.registerEvents(listener, this));
+        ).forEach(listener ->
+                pluginManager.registerEvents(listener, this)
+        );
     }
 
     @NotNull
@@ -123,7 +131,7 @@ public class Discord2FA extends JavaPlugin {
         return bot.getJDA() != null;
     }
 
-    public boolean isMySQLEnabled() {
+    public boolean isMYSQLEnabled() {
         return ConfigUtil.getBoolean("mysql.enabled");
     }
 }

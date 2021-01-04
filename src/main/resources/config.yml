@@ -34,9 +34,9 @@ authentication-for-players:
 
 logs:
   enabled: true
-  player-authenticated: '> %player%''s account was authenticated.'
-  player-entered-wrong-code: '> %player% entered wrong code! Left rights: %left%'
-  player-reached-limit: '> %player% reached the right limit!'
+  player-authenticated: '> `%player%''s` account was authenticated.'
+  player-entered-wrong-code: '> `%player%` entered wrong code! Left rights: %left%'
+  player-reached-limit: '> `%player%` reached the right limit!'
   admin-ids:
     - 324289979188510730
 

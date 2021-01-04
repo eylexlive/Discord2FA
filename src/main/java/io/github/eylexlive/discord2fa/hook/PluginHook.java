@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class PluginHook {

@@ -2,7 +2,6 @@ package io.github.eylexlive.discord2fa.listener;
 
 import io.github.eylexlive.discord2fa.Discord2FA;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -11,7 +10,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class BlockPlaceListener implements Listener {

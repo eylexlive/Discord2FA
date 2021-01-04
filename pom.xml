@@ -6,7 +6,7 @@
 
     <groupId>io.github.eylexlive</groupId>
     <artifactId>Discord2FA</artifactId>
-    <version>3.3</version>
+    <version>3.4</version>
     <description>2FA plugin with Discord.</description>
 
     <properties>
@@ -79,12 +79,20 @@
             <scope>provided</scope>
         </dependency>
 
-
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>3.4.5</version>
+            <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.6.4</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

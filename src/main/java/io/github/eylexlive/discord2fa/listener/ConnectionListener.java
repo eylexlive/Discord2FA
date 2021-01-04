@@ -11,7 +11,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class ConnectionListener implements Listener {
@@ -27,6 +27,7 @@ public class ConnectionListener implements Listener {
         final Player player = event.getPlayer();
         if (!plugin.getHookManager().isAnyPluginHooked())
             plugin.getDiscord2FAManager().checkPlayer(player);
+
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

@@ -4,38 +4,46 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.github.eylexlive.discord2fa.Discord2FA;
 import io.github.eylexlive.discord2fa.util.ConfigUtil;
 import org.bukkit.entity.Player;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class MySQLProvider extends Provider {
 
-    private final Discord2FA plugin = Discord2FA.getInstance();
+    private final Discord2FA plugin;
 
     private HikariDataSource dataSource;
 
+    public MySQLProvider(Discord2FA plugin) {
+        this.plugin = plugin;
+    }
+
     private String getData(Player player, String sqlPath, String sqlTable) {
-        try (Connection connection = getConnection()) {
-            final PreparedStatement statement =  connection.prepareStatement(
-                    "SELECT * FROM `"+ sqlTable +"` WHERE `player` = ?;");
-            statement.setString(1, player.getName());
-            final ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next())
-                return resultSet.getString(sqlPath);
-        } catch (SQLException e) {
-            plugin.getLogger().warning("Data cannot be getting:");
-            e.printStackTrace();
-        }
-        return null;
+        final CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+            try (Connection connection = getConnection()) {
+                final PreparedStatement statement = connection.prepareStatement(
+                        "SELECT * FROM " + sqlTable + " WHERE player = '" + player.getName() + "';");
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next())
+                    return resultSet.getString(sqlPath);
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+        return future.join();
+
     }
 
     @Override
@@ -61,19 +69,24 @@ public class MySQLProvider extends Provider {
         dataSource.addDataSourceProperty("characterEncoding", "UTF-8");
         dataSource.addDataSourceProperty("useSSL", String.valueOf(ConfigUtil.getBoolean("mysql.use-ssl")));
 
+        boolean err = false;
         try (Connection connection = getConnection()) {
             connection.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS `" + "2fa_backup" + "`(`player` TEXT, `codes` VARCHAR(" + (ConfigUtil.getInt("code-lenght") * 10 + 10)+"))"
+                    "CREATE TABLE IF NOT EXISTS 2fa_backup (player TEXT, codes VARCHAR(" + ConfigUtil.getInt("code-lenght") * 10 + 10 +"))"
             ).execute();
 
             connection.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS `" + "2fa" + "`(`player` TEXT, `discord` VARCHAR(60), `ip` TEXT)"
+                    "CREATE TABLE IF NOT EXISTS 2fa (player TEXT, discord VARCHAR(60), ip TEXT)"
             ).execute();
         } catch (SQLException e) {
-            e.printStackTrace();
+            err = true;
         }
 
-        plugin.getLogger().info("[MySQL] Successfully connected to the database!");
+        if (err) {
+            final Logger logger = LoggerFactory.getLogger(MySQLProvider.class);
+            logger.warn("Connection to database failed!");
+            logger.warn("Please make sure that details in config.yml are correct.");
+        }
     }
 
     @Override
@@ -89,10 +102,11 @@ public class MySQLProvider extends Provider {
 
         try (Connection connection = getConnection()) {
             final PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO `2fa` (player, discord)" + "VALUES " + "(?, ?);");
+                    "INSERT INTO 2fa (player, discord) VALUES (?, ?);");
             statement.setString(1, player.getName());
             statement.setString(2, discord);
             statement.executeUpdate();
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -105,7 +119,7 @@ public class MySQLProvider extends Provider {
 
         try (Connection connection = getConnection()) {
             final PreparedStatement statement = connection.prepareStatement(
-                    "DELETE FROM " + "`2fa`" + " WHERE player= '" + player.getName() + "';");
+                    "DELETE FROM 2fa WHERE player= '" + player.getName() + "';");
             statement.executeUpdate();
             statement.close();
         } catch (SQLException e) {
@@ -117,13 +131,14 @@ public class MySQLProvider extends Provider {
     public void authPlayer(Player player) {
         try (Connection connection = getConnection()) {
             final PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE `2fa` SET `ip` = ? WHERE `player` = ?;");
+                    "UPDATE 2fa SET ip = ? WHERE player = '" + player.getName() + "';");
             statement.setString(1, String.valueOf(player.getAddress().getAddress().getHostAddress()));
-            statement.setString(2, player.getName());
             statement.executeUpdate();
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         plugin.getDiscord2FAManager().completeAuth(player);
     }
 
@@ -136,9 +151,9 @@ public class MySQLProvider extends Provider {
 
         final boolean state = getData(player,"codes","2fa_backup") == null;
         final String sql = (
-                state ? "INSERT INTO `2fa_backup` (player, codes)" + "VALUES " + "(?, ?);"
+                state ? "INSERT INTO 2fa_backup (player, codes) VALUES (?, ?);"
                 :
-                "UPDATE `2fa_backup` SET `codes` = ? WHERE `player` = ?;"
+                "UPDATE 2fa_backup SET codes = ? WHERE player = ?;"
         );
 
         try (Connection connection = getConnection()) {
@@ -146,6 +161,7 @@ public class MySQLProvider extends Provider {
             statement.setString(1, state ? player.getName() : codes.toString());
             statement.setString(2, state ? codes.toString() : player.getName());
             statement.executeUpdate();
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -159,7 +175,6 @@ public class MySQLProvider extends Provider {
             return;
 
         final String codeData = getData(player,"codes","2fa_backup");
-
         if (codeData == null)
             return;
 
@@ -171,10 +186,10 @@ public class MySQLProvider extends Provider {
 
         try (Connection connection = getConnection()) {
             final PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE `2fa_backup` SET `codes` = ? WHERE `player` = ?;");
+                    "UPDATE 2fa_backup SET codes = ? WHERE player = '" + player.getName() + "';");
             statement.setString(1, codes.toString());
-            statement.setString(2, player.getName());
             statement.executeUpdate();
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -193,7 +208,13 @@ public class MySQLProvider extends Provider {
 
     @Override
     public boolean playerExits(Player player) {
-        return getData(player,"discord","2fa") != null;
+        try (Connection connection = getConnection()) {
+            final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM 2fa WHERE player = '" + player.getName() + "';");
+            return result.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override
@@ -211,13 +232,14 @@ public class MySQLProvider extends Provider {
         final StringBuilder stringBuilder = new StringBuilder().append("\n");
         final CompletableFuture<StringBuilder> future = CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
-                final PreparedStatement statement =  connection.prepareStatement("SELECT * FROM `2fa`;");
+                final PreparedStatement statement =  connection.prepareStatement("SELECT * FROM 2fa;");
                 final ResultSet resultSet = statement.executeQuery();
                 while(resultSet.next()) {
                     if (stringBuilder.length() > 0)
                         stringBuilder.append("\n");
                     stringBuilder.append(resultSet.getString(1)).append("/").append(resultSet.getString(2));
                 }
+                statement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }

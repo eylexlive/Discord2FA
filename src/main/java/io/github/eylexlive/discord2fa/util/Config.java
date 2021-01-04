@@ -12,7 +12,7 @@ import java.util.Set;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class Config extends YamlConfiguration {
@@ -54,14 +54,19 @@ public class Config extends YamlConfiguration {
         if (inputStream == null) return;
 
         final InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-        final YamlConfiguration[] cfg = { YamlConfiguration.loadConfiguration(file), YamlConfiguration.loadConfiguration(reader) };
+        final YamlConfiguration[] cfg =
+                {
+                        YamlConfiguration.loadConfiguration(file), YamlConfiguration.loadConfiguration(reader)
+                };
 
         final Set<String> keys = cfg[1].getConfigurationSection("").getKeys(true);
         final boolean hasUpdate = keys.stream().anyMatch(key -> !cfg[0].contains(key));
 
         if (!hasUpdate) return;
 
-        keys.stream().filter(key -> !cfg[0].contains(key)).forEach(key -> cfg[0].set(key, cfg[1].get(key)));
+        keys.stream().filter(key ->
+                !cfg[0].contains(key)).forEach(key -> cfg[0].set(key, cfg[1].get(key))
+        );
         try { cfg[0].save(file); } catch (IOException ignored) { }
     }
 }

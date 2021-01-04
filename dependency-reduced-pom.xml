@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.eylexlive</groupId>
   <artifactId>Discord2FA</artifactId>
-  <version>3.3</version>
+  <version>3.4</version>
   <description>2FA plugin with Discord.</description>
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>

@@ -11,14 +11,18 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.3
+ *	Currently version: 3.4
  */
 
 public class YamlProvider extends Provider {
 
-    private final Discord2FA plugin = Discord2FA.getInstance();
+    private final Discord2FA plugin;
 
     private Config yaml;
+
+    public YamlProvider(Discord2FA plugin) {
+        this.plugin = plugin;
+    }
 
     private String getData(String ymlPath) {
         return yaml.getString(ymlPath);
@@ -71,7 +75,6 @@ public class YamlProvider extends Provider {
             return;
 
         final String codeData = getData("verify." + player.getName() + ".backup-codes");
-
         if (codeData == null)
             return;
 
@@ -79,8 +82,7 @@ public class YamlProvider extends Provider {
         codesWithList.remove(code);
 
         final StringBuilder codes  = new StringBuilder();
-        for (String c: codesWithList)
-            codes.append(c).append("-");
+        for (String c: codesWithList) codes.append(c).append("-");
 
         yaml.set("verify." + player.getName() + ".backup-codes", codes.toString());
     }
@@ -88,7 +90,6 @@ public class YamlProvider extends Provider {
     @Override
     public boolean isBackupCode(Player player, String code) {
         final String codeData = getData("verify." + player.getName() + ".backup-codes");
-
         if (codeData == null)
             return false;
 
