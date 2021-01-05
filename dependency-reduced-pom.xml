@@ -18,10 +18,11 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.8.1</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
+          <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
       <plugin>
@@ -36,7 +37,57 @@
           </execution>
         </executions>
         <configuration>
+          <relocations>
+            <relocation>
+              <pattern>net.dv8tion.jda</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.jda</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.fasterxml.jackson</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.jackson</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.neovisionaries.ws</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.ws</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.commons.collections4</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.commons</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.http</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.apache.http</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>okhttp3</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.okhttp3</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>okio</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.okio</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>gnu.trove</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.trove</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.jetbrains.annotations</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.jetbrains</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.zaxxer.hikari</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.hikari</shadedPattern>
+            </relocation>
+          </relocations>
           <minimizeJar>true</minimizeJar>
+          <filters>
+            <filter>
+              <artifact>com.fasterxml.jackson.core:jackson-databind</artifact>
+              <includes>
+                <include>**</include>
+              </includes>
+            </filter>
+          </filters>
         </configuration>
       </plugin>
     </plugins>
