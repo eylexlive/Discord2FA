@@ -142,7 +142,7 @@
                         
                         <relocation>
                             <pattern>org.apache.commons.collections4</pattern>
-                            <shadedPattern>io.github.eylexlive.discord2fa.depend.commons</shadedPattern>
+                            <shadedPattern>io.github.eylexlive.discord2fa.depend.collections4</shadedPattern>
                         </relocation>
 
                         <relocation>
@@ -167,7 +167,7 @@
 
                         <relocation>
                             <pattern>org.jetbrains.annotations</pattern>
-                            <shadedPattern>io.github.eylexlive.discord2fa.depend.jetbrains</shadedPattern>
+                            <shadedPattern>io.github.eylexlive.discord2fa.depend.annotations</shadedPattern>
                         </relocation>
 
                         <relocation>
