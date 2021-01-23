@@ -6,7 +6,7 @@ import java.util.UUID;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class PlayerData {
@@ -65,15 +65,5 @@ public class PlayerData {
 
     public void setConfirmUser(User confirmUser) {
         this.confirmUser = confirmUser;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
     }
 }

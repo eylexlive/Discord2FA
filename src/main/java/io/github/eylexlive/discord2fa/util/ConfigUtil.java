@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class ConfigUtil {
@@ -39,6 +39,7 @@ public class ConfigUtil {
         return s;
     }
 
+    @NotNull
     public static List<String> getStringList(String path) {
         return plugin.getConfig().getStringList(path);
     }

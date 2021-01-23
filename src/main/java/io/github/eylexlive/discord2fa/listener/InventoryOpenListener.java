@@ -9,7 +9,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class InventoryOpenListener implements Listener {

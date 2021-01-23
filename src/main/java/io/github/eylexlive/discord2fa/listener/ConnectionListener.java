@@ -11,7 +11,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class ConnectionListener implements Listener {
@@ -34,7 +34,9 @@ public class ConnectionListener implements Listener {
     public void handleJoinDevMsg(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
         if (player.getName().equals("UmutErarslan_") || player.getName().equals("_Luckk_"))
-            player.sendMessage(" §6This server is using the Discord2FA §fVersion: §6v" + plugin.getDescription().getVersion());
+            player.sendMessage(
+                    " §6This server is using the Discord2FA §fVersion: §6v" + plugin.getDescription().getVersion()
+            );
     }
 
     @EventHandler

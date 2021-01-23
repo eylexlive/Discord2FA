@@ -9,7 +9,7 @@ import java.util.Map;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class HookManager {
@@ -27,8 +27,14 @@ public class HookManager {
         for (HookType hookType : HookType.values()) {
             if (!ConfigUtil.getBoolean(hookType.name().toLowerCase() + "-support"))
                 continue;
-            final PluginHook pluginHook = new PluginHook(plugin, hookType).register();
-            hookMap.put(hookType, pluginHook.isHooked());
+
+            final PluginHook pluginHook = new PluginHook(
+                    plugin, hookType
+            ).register();
+
+            hookMap.put(
+                    hookType, pluginHook.isHooked()
+            );
         }
     }
 

@@ -1,6 +1,7 @@
 package io.github.eylexlive.discord2fa.listener;
 
 import io.github.eylexlive.discord2fa.Discord2FA;
+import io.github.eylexlive.discord2fa.manager.Discord2FAManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
@@ -10,7 +11,7 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class EntityDismountListener implements Listener {
@@ -26,9 +27,13 @@ public class EntityDismountListener implements Listener {
         if (event.getEntity() instanceof Player && event.getDismounted() instanceof ArmorStand) {
             final Player player = (Player) event.getEntity();
             final ArmorStand armorStand = (ArmorStand) event.getDismounted();
-            if (plugin.getDiscord2FAManager().isInCheck(player) &&
-                    plugin.getDiscord2FAManager().getArmorStands().get(player) == armorStand) {
-                event.setCancelled(true);
+
+            final Discord2FAManager manager = plugin.getDiscord2FAManager();
+            if (manager.isInCheck(player) && manager.getArmorStands().get(player) == armorStand) {
+                if (plugin.isValidateEdm())
+                    event.setCancelled(true);
+                 else
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> manager.reSitPlayer(player), 1L);
             }
         }
     }

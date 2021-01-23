@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class Bot {
@@ -29,9 +29,13 @@ public class Bot {
     }
 
     public void login() {
-        final String token = ConfigUtil.getString("bot-token");
+        final String token = ConfigUtil.getString(
+                "bot-token"
+        );
         if (token.equals("Your token here.")) {
-            plugin.getLogger().warning("Please put your bot's token in config.");
+            plugin.getLogger().warning(
+                    "Please put your bot's token in config."
+            );
             return;
         }
 
@@ -48,11 +52,20 @@ public class Bot {
                         .build();
 
                 if (activityEntry.isEnabled())
-                    jda.getPresence().setActivity(Activity.of(activityEntry.getType(), activityEntry.getValue()));
+                    jda.getPresence().setActivity(
+                            Activity.of(
+                                    activityEntry.getType(),
+                                    activityEntry.getValue()
+                            )
+                    );
 
             } catch (LoginException e) {
-                plugin.getLogger().severe("Bot failed to connect..!");
-                plugin.getLogger().severe("Error cause: " + e.getLocalizedMessage());
+                plugin.getLogger().severe(
+                        "Bot failed to connect..!"
+                );
+                plugin.getLogger().severe(
+                        "Error cause: " + e.getLocalizedMessage()
+                );
             }
         });
 
@@ -79,22 +92,30 @@ public class Bot {
 
         public Activity.ActivityType getType() {
             final Activity.ActivityType activityType;
-            final String activity = ConfigUtil.getString("bot-activity.type");
+            final String activity = ConfigUtil.getString(
+                    "bot-activity.type"
+            );
             try {
                 activityType = Activity.ActivityType.valueOf(activity);
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid activity type '" + activity + "' Types: [DEFAULT, LISTENING, WATCHING]");
+                plugin.getLogger().warning(
+                        "Invalid activity type '" + activity + "' Types: [DEFAULT, LISTENING, WATCHING]"
+                );
                 return Activity.ActivityType.DEFAULT;
             }
             return activityType;
         }
 
         public String getValue() {
-            return ConfigUtil.getString("bot-activity.value");
+            return ConfigUtil.getString(
+                    "bot-activity.value"
+            );
         }
 
         public boolean isEnabled() {
-            return ConfigUtil.getBoolean("bot-activity.enabled");
+            return ConfigUtil.getBoolean(
+                    "bot-activity.enabled"
+            );
         }
     }
 }

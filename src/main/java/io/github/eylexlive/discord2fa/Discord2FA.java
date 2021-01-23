@@ -15,12 +15,13 @@ import org.bukkit.entity.Entity;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.spigotmc.event.entity.EntityDismountEvent;
 
 import java.util.Arrays;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class Discord2FA extends JavaPlugin {
@@ -36,16 +37,25 @@ public class Discord2FA extends JavaPlugin {
 
     private Provider provider;
 
+    private boolean validateEdm;
+
     @Override
     public void onEnable() {
-        if (instance != null) throw new IllegalStateException("Discord2FA already enabled!");
+        if (instance != null)
+            throw new IllegalStateException(
+                    "Discord2FA already enabled!"
+            );
 
         instance = this;
 
         config = new Config("config");
 
-        getCommand("auth").setExecutor(new AuthCommand(this));
-        getCommand("discord2fa").setExecutor(new Discord2FACommand(this));
+        getCommand("auth").setExecutor(
+                new AuthCommand(this)
+        );
+        getCommand("discord2fa").setExecutor(
+                new Discord2FACommand(this)
+        );
 
         registerListeners();
 
@@ -59,6 +69,8 @@ public class Discord2FA extends JavaPlugin {
         );
         provider.setupDatabase();
 
+        validateEdm = checkEdm();
+
         new Metrics(this);
         new UpdateCheck(this);
 
@@ -69,9 +81,20 @@ public class Discord2FA extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        discord2FAManager.getArmorStands().values().forEach(Entity::remove);
         getServer().getScheduler().cancelTasks(this);
-        discord2FAManager.getCheckPlayers().forEach(player -> player.kickPlayer("§cServer closed or Discord2FA reloaded!"));
+
+        discord2FAManager.getArmorStands()
+                .values()
+                .forEach(
+                        Entity::remove
+                );
+
+        discord2FAManager.getCheckPlayers()
+                .forEach(player ->
+                        player.kickPlayer(
+                                "§cServer closed or Discord2FA reloaded!"
+                        )
+                );
 
         if (provider != null) provider.saveDatabase();
 
@@ -93,8 +116,19 @@ public class Discord2FA extends JavaPlugin {
                 new ConnectionListener(this),
                 new EntityDismountListener(this)
         ).forEach(listener ->
-                pluginManager.registerEvents(listener, this)
+                pluginManager.registerEvents(
+                        listener, this
+                )
         );
+    }
+
+    private boolean checkEdm() {
+        try {
+            EntityDismountEvent.class.getMethod("isCancelled");
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
+        return true;
     }
 
     @NotNull
@@ -132,6 +166,12 @@ public class Discord2FA extends JavaPlugin {
     }
 
     public boolean isMYSQLEnabled() {
-        return ConfigUtil.getBoolean("mysql.enabled");
+        return ConfigUtil.getBoolean(
+                "mysql.enabled"
+        );
+    }
+
+    public boolean isValidateEdm() {
+        return validateEdm;
     }
 }

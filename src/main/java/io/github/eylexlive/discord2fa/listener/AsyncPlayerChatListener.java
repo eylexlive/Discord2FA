@@ -11,7 +11,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class AsyncPlayerChatListener implements Listener {
@@ -31,7 +31,12 @@ public class AsyncPlayerChatListener implements Listener {
         final boolean cancelled = !ConfigUtil.getStringList("canceled-events.chat-use.whitelisted-words")
                 .contains(event.getMessage());
         event.setCancelled(cancelled);
-        if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.chat-use-message"));
+        if (cancelled)
+            player.sendMessage(
+                ConfigUtil.getString(
+                        "messages.event-messages.chat-use-message"
+                )
+        );
     }
 
     @EventHandler

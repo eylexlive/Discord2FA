@@ -11,7 +11,7 @@ import java.util.List;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class YamlProvider extends Provider {
@@ -42,19 +42,27 @@ public class YamlProvider extends Provider {
     public void addToVerifyList(Player player, String discord) {
         if (playerExits(player))
             return;
-        yaml.set("verify." + player.getName() + ".discord", discord);
+        yaml.set(
+                "verify." + player.getName() + ".discord", discord
+        );
     }
 
     @Override
     public void removeFromVerifyList(Player player) {
         if (!playerExits(player))
             return;
-        yaml.set("verify." + player.getName(), null);
+        yaml.set(
+                "verify." + player.getName(), null
+        );
     }
 
     @Override
     public void authPlayer(Player player) {
-        yaml.set("verify." + player.getName() + ".ip", String.valueOf(player.getAddress().getAddress().getHostAddress()));
+        yaml.set(
+                "verify." + player.getName() + ".ip", String.valueOf(
+                        player.getAddress().getAddress().getHostAddress()
+                )
+        );
         plugin.getDiscord2FAManager().completeAuth(player);
     }
 
@@ -63,10 +71,21 @@ public class YamlProvider extends Provider {
         final StringBuilder codes = new StringBuilder();
 
         for (int i = 1; i <= 5; i++)
-            codes.append(plugin.getDiscord2FAManager().getRandomCode(ConfigUtil.getInt("code-lenght"))).append("-");
+            codes.append(
+                    plugin.getDiscord2FAManager().getRandomCode(
+                            ConfigUtil.getInt(
+                                    "code-lenght"
+                            )
+                    )
+            ).append("-");
 
-        yaml.set("verify."+ player.getName() +".backup-codes", codes.toString());
-        return Arrays.asList(codes.toString().split("-"));
+        yaml.set(
+                "verify."+ player.getName() +".backup-codes", codes.toString()
+        );
+
+        return Arrays.asList(
+                codes.toString().split("-")
+        );
     }
 
     @Override
@@ -74,26 +93,40 @@ public class YamlProvider extends Provider {
         if (!isBackupCode(player, code))
             return;
 
-        final String codeData = getData("verify." + player.getName() + ".backup-codes");
+        final String codeData = getData(
+                "verify." + player.getName() + ".backup-codes"
+        );
         if (codeData == null)
             return;
 
-        final List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
+        final List<String> codesWithList = new ArrayList<>(
+                Arrays.asList(
+                        codeData.split("-")
+                )
+        );
         codesWithList.remove(code);
 
         final StringBuilder codes  = new StringBuilder();
         for (String c: codesWithList) codes.append(c).append("-");
 
-        yaml.set("verify." + player.getName() + ".backup-codes", codes.toString());
+        yaml.set(
+                "verify." + player.getName() + ".backup-codes", codes.toString()
+        );
     }
 
     @Override
     public boolean isBackupCode(Player player, String code) {
-        final String codeData = getData("verify." + player.getName() + ".backup-codes");
+        final String codeData = getData(
+                "verify." + player.getName() + ".backup-codes"
+        );
         if (codeData == null)
             return false;
 
-        final List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
+        final List<String> codesWithList = new ArrayList<>(
+                Arrays.asList(
+                        codeData.split("-")
+                )
+        );
         return codesWithList.contains(code);
     }
 
@@ -122,7 +155,11 @@ public class YamlProvider extends Provider {
                 .forEach(key -> {
                     if(stringBuilder.length() > 0)
                         stringBuilder.append("\n");
-                    stringBuilder.append(key).append("/").append(getData("verify." + key + ".discord"));
+                    stringBuilder.append(key).append("/").append(
+                            getData(
+                                    "verify." + key + ".discord"
+                            )
+                    );
                 });
         return stringBuilder.toString();
     }

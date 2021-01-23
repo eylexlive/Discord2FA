@@ -10,7 +10,7 @@ import java.net.URLConnection;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class UpdateCheck {
@@ -51,12 +51,17 @@ public class UpdateCheck {
             ).openConnection();
             spigotPluginVersion = new BufferedReader(
                     new InputStreamReader(
-                            urlConnection.getInputStream())
+                            urlConnection.getInputStream()
+                    )
             ).readLine();
         } catch (IOException e) {
             return false;
         }
-        return !plugin.getDescription().getVersion().equals(spigotPluginVersion);
+        return !plugin.getDescription()
+                .getVersion()
+                .equals(
+                        spigotPluginVersion
+                );
     }
     
     private void log(String str) {

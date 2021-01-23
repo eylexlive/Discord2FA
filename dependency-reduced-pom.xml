@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.eylexlive</groupId>
   <artifactId>Discord2FA</artifactId>
-  <version>3.4</version>
+  <version>3.5</version>
   <description>2FA plugin with Discord.</description>
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
@@ -47,16 +47,16 @@
               <shadedPattern>io.github.eylexlive.discord2fa.depend.jackson</shadedPattern>
             </relocation>
             <relocation>
+              <pattern>com.iwebpp.crypto</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.crypto</shadedPattern>
+            </relocation>
+            <relocation>
               <pattern>com.neovisionaries.ws</pattern>
               <shadedPattern>io.github.eylexlive.discord2fa.depend.ws</shadedPattern>
             </relocation>
             <relocation>
               <pattern>org.apache.commons.collections4</pattern>
               <shadedPattern>io.github.eylexlive.discord2fa.depend.collections4</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.apache.http</pattern>
-              <shadedPattern>io.github.eylexlive.discord2fa.depend.apache.http</shadedPattern>
             </relocation>
             <relocation>
               <pattern>okhttp3</pattern>
@@ -72,7 +72,15 @@
             </relocation>
             <relocation>
               <pattern>org.jetbrains.annotations</pattern>
-              <shadedPattern>io.github.eylexlive.discord2fa.depend.annotations</shadedPattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.annotations.jetbrains</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>javax.annotation</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.annotations.javax</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.slf4j</pattern>
+              <shadedPattern>io.github.eylexlive.discord2fa.depend.slf4j</shadedPattern>
             </relocation>
             <relocation>
               <pattern>com.zaxxer.hikari</pattern>

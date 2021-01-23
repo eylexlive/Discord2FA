@@ -12,7 +12,7 @@ import java.util.Set;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class Config extends YamlConfiguration {
@@ -65,7 +65,11 @@ public class Config extends YamlConfiguration {
         if (!hasUpdate) return;
 
         keys.stream().filter(key ->
-                !cfg[0].contains(key)).forEach(key -> cfg[0].set(key, cfg[1].get(key))
+                !cfg[0].contains(key)
+        ).forEach(key ->
+                cfg[0].set(
+                        key, cfg[1].get(key)
+                )
         );
         try { cfg[0].save(file); } catch (IOException ignored) { }
     }

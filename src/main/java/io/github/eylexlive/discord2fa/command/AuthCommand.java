@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class AuthCommand implements CommandExecutor {
@@ -37,19 +37,31 @@ public class AuthCommand implements CommandExecutor {
         final Player player = (Player) sender;
 
         if (!plugin.isConnected()){
-            player.sendMessage("§cOops, the bot connection failed! You cannot do this now.");
+            player.sendMessage(
+                    "§cOops, the bot connection failed! You cannot do this now."
+            );
         }
 
         else if (!provider.playerExits(player)) {
-            player.sendMessage("§cYou cannot do this yet...");
+            player.sendMessage(
+                    "§cYou cannot do this yet..."
+            );
         }
 
         else if (!manager.isInCheck(player)) {
-            player.sendMessage(ConfigUtil.getString("messages.auth-command.already-verified-message"));
+            player.sendMessage(
+                    ConfigUtil.getString(
+                            "messages.auth-command.already-verified-message"
+                    )
+            );
         }
 
         else if (args.length == 0) {
-            player.sendMessage(ConfigUtil.getString("messages.auth-command.help-message"));
+            player.sendMessage(
+                    ConfigUtil.getString(
+                            "messages.auth-command.help-message"
+                    )
+            );
         }
 
         else if (args.length == 1) {
@@ -71,16 +83,28 @@ public class AuthCommand implements CommandExecutor {
 
             CompletableFuture.runAsync(() -> {
                 if (isBackup) {
-                    provider.removeBackupCode(player, enteredCode);
-                    player.sendMessage(ConfigUtil.getString("messages.auth-command.backup-code-used"));
+                    provider.removeBackupCode(
+                            player, enteredCode
+                    );
+                    player.sendMessage(
+                            ConfigUtil.getString(
+                                    "messages.auth-command.backup-code-used"
+                            )
+                    );
                 }
 
                 provider.authPlayer(player);
             }).whenComplete((future, err) -> {
                 if (err == null) {
-                    player.sendMessage(ConfigUtil.getString("messages.auth-command.auth-success-message"));
+                    player.sendMessage(
+                            ConfigUtil.getString(
+                                    "messages.auth-command.auth-success-message"
+                            )
+                    );
                 } else {
-                    player.sendMessage("§cAn error occurred while authenticating!");
+                    player.sendMessage(
+                            "§cAn error occurred while authenticating!"
+                    );
                     err.printStackTrace();
                 }
             });

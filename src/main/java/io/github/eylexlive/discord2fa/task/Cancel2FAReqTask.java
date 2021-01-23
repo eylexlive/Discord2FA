@@ -7,7 +7,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class Cancel2FAReqTask extends BukkitRunnable {

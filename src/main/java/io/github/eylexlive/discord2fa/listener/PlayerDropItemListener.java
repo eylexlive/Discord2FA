@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class PlayerDropItemListener implements Listener {
@@ -29,6 +29,11 @@ public class PlayerDropItemListener implements Listener {
         final boolean cancelled = !ConfigUtil.getStringList("canceled-events.item-drop.whitelisted-materials")
                 .contains(event.getItemDrop().getItemStack().getType().name());
         event.setCancelled(cancelled);
-        if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.item-drop-message"));
+        if (cancelled)
+            player.sendMessage(
+                ConfigUtil.getString(
+                        "messages.event-messages.item-drop-message"
+                )
+        );
     }
 }

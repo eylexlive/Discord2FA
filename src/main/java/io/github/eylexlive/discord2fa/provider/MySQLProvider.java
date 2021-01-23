@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class MySQLProvider extends Provider {
@@ -53,21 +53,45 @@ public class MySQLProvider extends Provider {
 
         dataSource.setJdbcUrl(
                 "jdbc:mysql://" +
-                        ConfigUtil.getString("mysql.host") +
-                        ":" +
-                        ConfigUtil.getInt("mysql.port") +
-                        "/" +
-                        ConfigUtil.getString("mysql.database")
+                        ConfigUtil.getString(
+                                "mysql.host"
+                        )
+                        + ":" +
+                        ConfigUtil.getInt(
+                                "mysql.port"
+                        )
+                        + "/" +
+                        ConfigUtil.getString(
+                                "mysql.database"
+                        )
         );
 
-        dataSource.setUsername(ConfigUtil.getString("mysql.username"));
-        dataSource.setPassword(ConfigUtil.getString("mysql.password"));
+        dataSource.setUsername(
+                ConfigUtil.getString(
+                        "mysql.username"
+                )
+        );
+        dataSource.setPassword(
+                ConfigUtil.getString(
+                        "mysql.password"
+                )
+        );
 
-        dataSource.addDataSourceProperty("autoReconnect", "true");
-        dataSource.addDataSourceProperty("autoReconnectForPools", "true");
+        dataSource.addDataSourceProperty(
+                "autoReconnect", "true"
+        );
+        dataSource.addDataSourceProperty(
+                "autoReconnectForPools", "true"
+        );
 
-        dataSource.addDataSourceProperty("characterEncoding", "UTF-8");
-        dataSource.addDataSourceProperty("useSSL", String.valueOf(ConfigUtil.getBoolean("mysql.use-ssl")));
+        dataSource.addDataSourceProperty(
+                "characterEncoding", "UTF-8"
+        );
+        dataSource.addDataSourceProperty(
+                "useSSL", String.valueOf(
+                        ConfigUtil.getBoolean("mysql.use-ssl")
+                )
+        );
 
         boolean err = false;
         try (Connection connection = getConnection()) {
@@ -84,8 +108,12 @@ public class MySQLProvider extends Provider {
 
         if (err) {
             final Logger logger = LoggerFactory.getLogger(MySQLProvider.class);
-            logger.warn("Connection to database failed!");
-            logger.warn("Please make sure that details in config.yml are correct.");
+            logger.warn(
+                    "Connection to database failed!"
+            );
+            logger.warn(
+                    "Please make sure that details in config.yml are correct."
+            );
         }
     }
 
@@ -102,7 +130,8 @@ public class MySQLProvider extends Provider {
 
         try (Connection connection = getConnection()) {
             final PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO 2fa (player, discord) VALUES (?, ?);");
+                    "INSERT INTO 2fa (player, discord) VALUES (?, ?);"
+            );
             statement.setString(1, player.getName());
             statement.setString(2, discord);
             statement.executeUpdate();
@@ -119,7 +148,8 @@ public class MySQLProvider extends Provider {
 
         try (Connection connection = getConnection()) {
             final PreparedStatement statement = connection.prepareStatement(
-                    "DELETE FROM 2fa WHERE player= '" + player.getName() + "';");
+                    "DELETE FROM 2fa WHERE player= '" + player.getName() + "';"
+            );
             statement.executeUpdate();
             statement.close();
         } catch (SQLException e) {
@@ -131,7 +161,8 @@ public class MySQLProvider extends Provider {
     public void authPlayer(Player player) {
         try (Connection connection = getConnection()) {
             final PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE 2fa SET ip = ? WHERE player = '" + player.getName() + "';");
+                    "UPDATE 2fa SET ip = ? WHERE player = '" + player.getName() + "';"
+            );
             statement.setString(1, String.valueOf(player.getAddress().getAddress().getHostAddress()));
             statement.executeUpdate();
             statement.close();
@@ -147,7 +178,13 @@ public class MySQLProvider extends Provider {
         final StringBuilder codes = new StringBuilder();
 
         for (int i = 1; i <= 5; i++)
-            codes.append(plugin.getDiscord2FAManager().getRandomCode(ConfigUtil.getInt("code-lenght"))).append("-");
+            codes.append(
+                    plugin.getDiscord2FAManager().getRandomCode(
+                            ConfigUtil.getInt(
+                                    "code-lenght"
+                            )
+                    )
+            ).append("-");
 
         final boolean state = getData(player,"codes","2fa_backup") == null;
         final String sql = (
@@ -178,7 +215,11 @@ public class MySQLProvider extends Provider {
         if (codeData == null)
             return;
 
-        final List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
+        final List<String> codesWithList = new ArrayList<>(
+                Arrays.asList(
+                        codeData.split("-")
+                )
+        );
         codesWithList.remove(code);
 
         final StringBuilder codes  = new StringBuilder();
@@ -186,7 +227,8 @@ public class MySQLProvider extends Provider {
 
         try (Connection connection = getConnection()) {
             final PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE 2fa_backup SET codes = ? WHERE player = '" + player.getName() + "';");
+                    "UPDATE 2fa_backup SET codes = ? WHERE player = '" + player.getName() + "';"
+            );
             statement.setString(1, codes.toString());
             statement.executeUpdate();
             statement.close();
@@ -202,14 +244,20 @@ public class MySQLProvider extends Provider {
         if (codeData == null)
             return false;
 
-        final List<String> codesWithList = new ArrayList<>(Arrays.asList(codeData.split("-")));
+        final List<String> codesWithList = new ArrayList<>(
+                Arrays.asList(
+                        codeData.split("-")
+                )
+        );
         return codesWithList.contains(code);
     }
 
     @Override
     public boolean playerExits(Player player) {
         try (Connection connection = getConnection()) {
-            final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM 2fa WHERE player = '" + player.getName() + "';");
+            final ResultSet result = connection.createStatement().executeQuery(
+                    "SELECT * FROM 2fa WHERE player = '" + player.getName() + "';"
+            );
             return result.next();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -232,12 +280,16 @@ public class MySQLProvider extends Provider {
         final StringBuilder stringBuilder = new StringBuilder().append("\n");
         final CompletableFuture<StringBuilder> future = CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
-                final PreparedStatement statement =  connection.prepareStatement("SELECT * FROM 2fa;");
+                final PreparedStatement statement =  connection.prepareStatement(
+                        "SELECT * FROM 2fa;"
+                );
                 final ResultSet resultSet = statement.executeQuery();
                 while(resultSet.next()) {
                     if (stringBuilder.length() > 0)
                         stringBuilder.append("\n");
-                    stringBuilder.append(resultSet.getString(1)).append("/").append(resultSet.getString(2));
+                    stringBuilder.append(
+                            resultSet.getString(1)).append("/").append(resultSet.getString(2)
+                    );
                 }
                 statement.close();
             } catch (SQLException e) {

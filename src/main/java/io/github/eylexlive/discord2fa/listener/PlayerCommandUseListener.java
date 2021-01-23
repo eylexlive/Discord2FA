@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class PlayerCommandUseListener implements Listener {
@@ -31,6 +31,11 @@ public class PlayerCommandUseListener implements Listener {
         final boolean cancelled = !ConfigUtil.getStringList("canceled-events.command-use.whitelisted-commands")
                 .contains(commandArguments[0].replaceFirst("/", ""));
         event.setCancelled(cancelled);
-        if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.command-use-message"));
+        if (cancelled)
+            player.sendMessage(
+                ConfigUtil.getString(
+                        "messages.event-messages.command-use-message"
+                )
+        );
     }
 }

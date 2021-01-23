@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 @SuppressWarnings("unused")
@@ -21,6 +21,8 @@ public class LoginSecurityEvent implements Listener {
 
     @EventHandler
     public void handleLoginSecurityLogin(AuthActionEvent event) {
-        plugin.getDiscord2FAManager().checkPlayer(event.getPlayer());
+        plugin.getDiscord2FAManager().checkPlayer(
+                event.getPlayer()
+        );
     }
 }

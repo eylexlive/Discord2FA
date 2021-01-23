@@ -10,7 +10,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 /*
  *	Created by EylexLive on Feb 23, 2020.
- *	Currently version: 3.4
+ *	Currently version: 3.5
  */
 
 public class BlockBreakListener implements Listener {
@@ -29,6 +29,11 @@ public class BlockBreakListener implements Listener {
         final boolean cancelled = !ConfigUtil.getStringList("canceled-events.block-break.whitelisted-blocks")
                 .contains(event.getBlock().getType().name());
         event.setCancelled(cancelled);
-        if (cancelled) player.sendMessage(ConfigUtil.getString("messages.event-messages.block-break-message"));
+        if (cancelled)
+            player.sendMessage(
+                ConfigUtil.getString(
+                        "messages.event-messages.block-break-message"
+                )
+        );
     }
 }
